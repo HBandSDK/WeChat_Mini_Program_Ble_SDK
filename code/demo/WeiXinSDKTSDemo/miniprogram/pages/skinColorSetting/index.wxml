@@ -1,0 +1,24 @@
+<view>
+  <view style="padding: 30rpx;">
+    <view class="section">
+      <view class="section__title">肤色类型：</view>
+      <picker bindchange="bindPickerChange1" value="{{index1}}" range="{{array1}}">
+        <view class="picker">
+          {{array1[index1]}}
+        </view>
+      </picker>
+    </view>
+    <view class="section">
+      <view class="section__title">肤色档位：</view>
+      <picker bindchange="bindPickerChange2" value="{{index2}}" range="{{index1 == 0 ? array2 : array3}}">
+        <view class="picker">
+          {{ index1 == 0 ? array2[index2] : array3[index2]}}
+        </view>
+      </picker>
+    </view>
+  </view>
+  <view class="box-btn" style="margin: 20rpx 0; ">
+    <button catch:tap="settingSkinColor">肤色设置</button>
+  </view>
+
+</view>

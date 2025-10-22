@@ -1,0 +1,53 @@
+<view>
+
+  <button style="margin-top: 20px;" catch:tap="microCheckStart">开始测量</button>
+  <button style="margin-top: 20px;" catch:tap="microCheckStop">关闭测量</button>
+  <view class="body-item">
+    <view class="item-left">测试进度：</view>
+    <view class="item-left">{{progress}}</view>
+  </view>
+
+  <view class="body-item">
+    <view class="item-left">测试结果：</view>
+  </view>
+  <view class="body-item">
+    <view class="item-left">心率</view>
+    <view class="item-left">{{heartRate}}</view>
+  </view>
+  <view class="body-item">
+    <view class="item-left">血氧</view>
+    <view class="item-left">{{bloodOxygen}}</view>
+  </view>
+  <view class="body-item">
+    <view class="item-left">压力</view>
+    <view class="item-left">{{pressure}}</view>
+  </view>
+  <view class="body-item">
+    <view class="item-left">情绪</view>
+    <view class="item-left">{{emotion}}</view>
+  </view>
+  <view class="body-item">
+    <view class="item-left">疲劳度</view>
+    <view class="item-left">{{fatigueLevel}}</view>
+  </view>
+  <view class="body-item">
+    <view class="item-left">血糖</view>
+    <view class="item-left">{{bloodSugar}}</view>
+  </view>
+
+  <view class="body-item">
+    <view class="item-left">体温</view>
+    <view class="item-left">{{bodyTemperature}}</view>
+  </view>
+
+  <view class="body-item">
+    <view class="item-left">高压</view>
+    <view class="item-left">{{highPressure}}</view>
+  </view>
+  <view class="body-item">
+    <view class="item-left">低压</view>
+    <view class="item-left">{{lowPressure}}</view>
+  </view>
+
+
+</view>

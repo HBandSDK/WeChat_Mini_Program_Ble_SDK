@@ -11,7 +11,7 @@ Page({
     isTransfering: false,
     transferProgressText: "",
     imgs: "../../../image/dial_icon3_main.png",
-    fileName:""
+    fileName: ""
   },
   devScreenWidth: 240,
   devScreenHeight: 280,
@@ -58,8 +58,8 @@ Page({
   onShow() {
 
   },
-  uint8ArrayToHex(uInt8Array:any) {
-    return uInt8Array.map((byte:any) => byte.toString(16).padStart(2, '0')).join('');
+  uint8ArrayToHex(uInt8Array: any) {
+    return uInt8Array.map((byte: any) => byte.toString(16).padStart(2, '0')).join('');
   },
   //裁剪图片
   clickWay1() {
@@ -77,7 +77,7 @@ Page({
             // 返回的数据
             onDialBgData: (resDialBg: { data: any }) => {
               console.log("resDialBg==+>", resDialBg);
-             // 发送数据 分词发送，先发送缩略图，在发送背景图，固定名字
+              // 发送数据 分词发送，先发送缩略图，在发送背景图，固定名字
               this._handleDialBgData(resDialBg.data);
 
             }
@@ -328,6 +328,34 @@ Page({
             transferProgressText: "传输成功",
             isTransfering: false
           })
+
+
+          // 切换自定义背景表盘
+          setTimeout(() => {
+
+            let value = {
+              control: 1,// 设置 1 读取 
+              style: 0, // 风格
+              styleType: 2 // 0 默认表盘 1 表盘市场  2 自定义表盘
+            }
+            console.log("value=>", value)
+            veepooFeature.veepooSendSwitchCustomBGUIDialManager(value)
+          }, 500);
+
+          // 切换自定义UI风格，切换
+          setTimeout(() => {
+            let value = {
+              timePosition: 7,
+              timeTopPosition: 2,
+              timeButtomPosition: 3,
+              isDefaultBg: 0,
+              timeColor: [251, 251, 251]
+            }
+            console.log("value=>", value);
+            veepooFeature.veepooSendSetupCustomBackgroundDialDataManager(value)
+          }, 1000);
+
+
         },
         onCancel: (_code: number) => {
           this.setData({
@@ -338,7 +366,7 @@ Page({
       }
 
 
-      console.log("fileName===>",fileName)
+      console.log("fileName===>", fileName)
       RCSPOpWatchDial?.addWatchResourseFile(data.data2, fileName, lastModifyTime, true, transferCallback).then((res) => {
         self.setData({
           fileName

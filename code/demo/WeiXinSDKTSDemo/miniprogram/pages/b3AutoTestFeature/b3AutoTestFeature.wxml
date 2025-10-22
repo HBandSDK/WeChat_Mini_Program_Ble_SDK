@@ -1,0 +1,21 @@
+<view class="box">
+  <button class="btn" catch:tap="startRead">开始读取</button>
+  <button class="btn" catch:tap="startSetup">开始设置</button>
+
+  <picker bindchange="bindPickerChange" value="{{index}}" range="{{array}}">
+    <view class="picker">
+      当前选择类型：{{array[index]}}
+    </view>
+  </picker>
+
+  <view>
+
+    <view style="margin-top: 50rpx;">
+      <view class="section__title">开关：</view>
+      <view class="body-view">
+        <switch type="switch" checked="{{switch2Checked}}" bindchange="switch2Change" />
+      </view>
+    </view>
+
+  </view>
+</view>

@@ -1,6 +1,5 @@
 // pages/heartRateAlarm/index.ts
 
-import { convertWechatDeviceToBluetoothDevice } from '../../jieli_sdk/lib/bluetooth'
 import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
 Page({
 

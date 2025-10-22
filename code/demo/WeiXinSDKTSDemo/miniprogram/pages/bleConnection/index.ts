@@ -4,6 +4,10 @@ import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
 
 
 
+
+
+
+
 Page({
 
   /**
@@ -87,6 +91,7 @@ Page({
     wx.showLoading({
       title: '连接中'
     })
+    
     this.StopSearchBleManager()
     deviceList.forEach((item: any) => {
       if (item.deviceId == e.currentTarget.dataset.deviceid) {
@@ -138,6 +143,7 @@ Page({
       }
     })
   },
+  
   connectBle2() {
     let self = this;
     wx.showLoading({
@@ -148,7 +154,6 @@ Page({
     veepooBle.veepooWeiXinSDKBleConnectionServicesCharacteristicsNotifyManager(item, function (result: any) {
       console.log("result=>", result)
       if (result.connection) {
-
         if (item.name == 'DFULang') {
           wx.hideLoading()
           // 获取当前服务，订阅监听

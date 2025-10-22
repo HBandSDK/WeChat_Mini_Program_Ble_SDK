@@ -1,5 +1,4 @@
 <view class="network-dial">
-  <view class="get-custom-dial" catch:tap="notifyJLData"><button style="margin: 30rpx  auto;background-color: white;">接受杰理数据</button></view>
   <view class="get-custom-dial" catch:tap="setJLVerify"><button style="margin: 30rpx  auto;background-color: white;">杰理认证</button></view>
   <view class="get-custom-dial" style="display: flex;" > 
 
@@ -7,6 +6,7 @@
     <button style="margin: 30rpx  auto;background-color: white;" catch:tap="getData">获取数据</button>
     <!-- <view style="height: 30px; padding: 0 10px;background-color: #ffffff;" catch:tap="addGetIndex">Index + 1</view> -->
     
+
     </view>
   <view class="get-custom-dial" catch:tap="clickStartTransferDialFile"><button style="margin: 30rpx  auto;background-color: white;">开始传输</button></view>
 
@@ -14,7 +14,6 @@
 
   <!-- <text>注意：传输完成后需刷新表盘列表，才能正常删除表盘</text> -->
 
-  
 
 
   <view class="dial-box">

@@ -38,6 +38,9 @@
     <button catch:tap="SetCustomBackground">设置自定义背景样式</button>
   </view>
   <view class="box-btn" style="margin: 20rpx 0; ">
+    <button catch:tap="switchCustomBg">切换自定义背景</button>
+  </view>
+  <view class="box-btn" style="margin: 20rpx 0; ">
     <button catch:tap="readCustomBackground">读取自定义背景</button>
   </view>
 

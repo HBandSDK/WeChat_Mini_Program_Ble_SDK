@@ -92,6 +92,10 @@ Component({
         path: '/pages/contactPerson/index'
       },
       {
+        name: 'SOS',
+        path: '/pages/sos/index'
+      },
+      {
         name: '闹钟',
         path: '/pages/alarmClock/index'
       },
@@ -128,13 +132,13 @@ Component({
         path: '/pages/bloodGlucose/index'
       },
       {
-        name: 'ota封装版',
+        name: 'ota',
         path: '/pages/ota/index'
       },
-      {
-        name: 'ota原生版',
-        path: '/pages/otaNavite/index'
-      },
+      // {
+      //   name: 'ota原生版',
+      //   path: '/pages/otaNavite/index'
+      // },
       {
         name: '久坐提醒',
         path: '/pages/sedentaryToast/index'
@@ -183,10 +187,10 @@ Component({
         name: 'android编码',
         path: '/pages/androidCode/index'
       },
-      // {
-      //   name: 'UI风格',
-      //   path: '/pages/uiStyle/index'
-      // },
+      {
+        name: 'UI风格',
+        path: '/pages/uiStyle/index'
+      },
       {
         name: '同步时间',
         path: '/pages/syncTime/index'
@@ -203,6 +207,22 @@ Component({
         name: '语言切换',
         path: '/pages/languagePage/index'
       },
+      {
+        name: '读取手动测量',
+        path: '/pages/manualMeasurement/index'
+      },
+      {
+        name: '肤色设置',
+        path: '/pages/skinColorSetting/index'
+      },
+      {
+        name: '微体检',
+        path: '/pages/microCheck/index'
+      },
+      {
+        name: 'B3自动测量',
+        path: '/pages/b3AutoTestFeature/b3AutoTestFeature'
+      },
     ],
     valData: {
       heartRate: 'start',
@@ -210,8 +230,9 @@ Component({
     }
   },
   methods: {
-    packRgb(r: any, g: any, b: any) {
 
+
+    packRgb(r: any, g: any, b: any) {
 
       // 构造高位字节
       console.log("(r << 3) & 0xF8)=>", (r << 3) & 0xF8)
@@ -283,6 +304,7 @@ Component({
       let self = this;
 
       // let blePackage = {"deviceId":"FA:4E:30:9C:E6:B0","rssi":-38,"connectable":true,"data":{"0":2,"1":1,"2":6,"3":9,"4":255,"5":248,"6":248,"7":76,"8":197,"9":217,"10":146,"11":3,"12":248,"13":3,"14":3,"15":231,"16":254,"17":5,"18":9,"19":86,"20":50,"21":55,"22":90},"deviceName":"V27Z"}
+      // 初始化蓝牙适配器
 
       let blePackage = { "deviceId": "F0:87:99:D6:F7:2D", "rssi": -53, "connectable": true, "data": { "0": 2, "1": 1, "2": 6, "3": 3, "4": 3, "5": 231, "6": 254, "7": 3, "8": 25, "9": 65, "10": 3, "11": 9, "12": 255, "13": 248, "14": 248, "15": 46, "16": 28, "17": 105, "18": 64, "19": 211, "20": 20, "21": 6, "22": 9, "23": 70, "24": 49, "25": 48, "26": 48, "27": 0 }, "deviceName": "F100" }
 
@@ -300,7 +322,7 @@ Component({
           max = max + hexMac[i] + ':'
         }
       }
-      console.log("mac=>", max)
+      console.log("mac=>", max);
 
       let dataLength = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0].length
       let tbyte = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0]
@@ -346,8 +368,10 @@ Component({
       }
       veepooBle.veepooWeiXinSDKRawDataShowStatus(data);
 
-      let date = new Date();
-      console.log("date==>", self.getNextDays('2024-08-01', 3));
+      let str = "2025-09-03 17:48:00";
+      const isoStr = str.replace(' ', 'T');
+      const date = new Date(isoStr);
+      console.log('时间戳==》', date.getTime());
 
     },
 
@@ -519,9 +543,8 @@ Component({
         deviceId: bleDate.deviceId,
         mtu: 247,
         success: res => {
-
           console.log("第一个res=>", res)
-        },
+        }, //
         fail: (res) => {
           wx.getBLEMTU({
             deviceId: bleDate.deviceId, success: res => {

@@ -51,7 +51,12 @@
     "pages/volume/index",
     "pages/networkDial/index",
     "pages/heartRateTest/index",
-    "pages/languagePage/index"
+    "pages/languagePage/index",
+    "pages/manualMeasurement/index",
+    "pages/skinColorSetting/index",
+    "pages/microCheck/index",
+    "pages/sos/index",
+    "pages/b3AutoTestFeature/b3AutoTestFeature"
   ],
   "window": {
     "navigationBarTextStyle": "black",

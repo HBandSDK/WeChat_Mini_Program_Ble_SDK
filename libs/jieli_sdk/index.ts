@@ -1,5 +1,5 @@
 import { veepooBle } from '../miniprogram_dist/index'
-import { ConnectImpl } from '../jieli_sdk/lib/bluetooth'
+// import { ConnectImpl } from '../jieli_sdk/lib/bluetooth'
 import { PackResFormat, Uint8ArrayToString } from "./jl_lib/jl_packResFormat_1.0.0";
 import { RCSPOpSystemInfo, RCSPOpWatchDial, RCSPOpWatch } from "./lib/rcsp-impl/rcsp";
 import { OPDirectoryBrowse, OPLargerFileTrans } from "./jl_lib/jl-rcsp-op/jl_op_watch_1.1.0";
@@ -12,7 +12,9 @@ import { RcspOTAManager } from "../jieli_sdk/jl_lib/jl-ota/ota-rcsp"
 import { Reconnect, ReconnectCallback, ReconnectOp } from "../jieli_sdk/lib/reconnect"
 // 认证
 import { Device, ab2hex } from "./jl_lib/jl-rcsp/jl_rcsp_watch_1.1.0";
-let ConnectedImp = new ConnectImpl();
+import { BleDataHandler, BleSendDataHandler } from './lib/ble-data-handler';
+// let ConnectedImp = new ConnectImpl();
+
 
 /* 
 表盘传输相关代码开始
@@ -289,40 +291,84 @@ export const veepooJLGetDialBackgroundManager = (file: OPDirectoryBrowse.File, c
 
 
 // 切换杰里服务
-export const veepooJLHandoverDeviceServiceManager = function (device: any) {
-  ConnectedImp.jieLiNotifyMonitorValueChange(device)
-}
+// export const veepooJLHandoverDeviceServiceManager = function (device: any) {
+//   ConnectedImp.jieLiNotifyMonitorValueChange(device)
+// }
 
 // 杰里sdk认证
 export const veepooJLAuthenticationManager = function (device: any, callback: any) {
-  wx.setBLEMTU({//怀疑并发的时候会mtu混乱
-    deviceId: device.deviceId,
-    mtu: 512,
-    success: res => {
+  wx.getSystemInfo({
+    success(system) {
+      if (system.platform === 'android') {
+        wx.setBLEMTU({//怀疑并发的时候会mtu混乱 
+          deviceId: device.deviceId,
+          writeType: "writeNoResponse",
+          mtu: 512,
+          success: res => {
+            console.log("第一个res=>", res)
+            let value = {
+              device: device,
+              mtu: res.mtu
+            }
+            // BleSendDataHandler.setMtu(device.deviceId, res.mtu);
+            // 切换杰里服务等
+            // ConnectedImp.handoverServiceManager(value, (result: any) => {
+            //   callback(result)
+            // })
 
-      console.log("第一个res=>", res)
-    },
-    fail: (res) => {
-      wx.getBLEMTU({
-        deviceId: device.deviceId, success: res => {
-          console.log("第二个res=>", res)
-          let value = {
-            device: device,
-            mtu: res.mtu
+          },
+          fail: (res) => {
+            wx.getBLEMTU({
+              writeType: "writeNoResponse",
+              deviceId: device.deviceId, success: res => {
+                console.log("第二个res=>", res);
+                let value = {
+                  device: device,
+                  mtu: 244
+                }
+
+                // BleSendDataHandler.setMtu(device.deviceId, res.mtu);
+
+                // 切换杰里服务等
+                // ConnectedImp.handoverServiceManager(value, (result: any) => {
+                //   callback(result)
+                // })
+              }
+            })
           }
-          // 切换杰里服务等
-          ConnectedImp.handoverServiceManager(value, (result: any) => {
-            callback(result)
+        })
+
+
+      } else {
+
+        setTimeout(() => {
+
+          wx.getBLEMTU({
+            writeType: "writeNoResponse",
+            deviceId: device.deviceId, success: res => {
+              console.log("ios res=>", res)
+              let value = {
+                device: device,
+                mtu: 244
+              }
+              // BleSendDataHandler.setMtu(device.deviceId, res.mtu);
+              // 切换杰里服务等
+              // ConnectedImp.handoverServiceManager(value, (result: any) => {
+              //   callback(result)
+              // })
+            }
           })
-        }
-      })
+        }, 1000)
+
+      }
     }
   })
+
 }
 
 // 杰里断开蓝牙连接
 export const veepooJLDisconnectDevice = function (device: any) {
-  RCSPManager.JLOnConnectDisconnect(device)
+  // RCSPManager.JLOnConnectDisconnect(device)
   DeviceManager.disconnectDevice(device)
 }
 
@@ -347,6 +393,8 @@ let otaData = Uint8Array.prototype
 let rcspWrapperEventCallback = RCSP.RCSPWrapperEventCallback.prototype
 let _Reconnect: Reconnect | null = null;
 let reconnectingDeviceId = ""
+
+
 // 开始升级
 export const veepooJLStartOTAManager = function (value: any, callback: any) {
   const rcspOpImpl = RCSPManager.getCurrentRcspOperateWrapper()?.wrapper.getRcspOpImpl();
@@ -376,6 +424,8 @@ export const veepooJLStartOTAManager = function (value: any, callback: any) {
       const op: ReconnectOp = {
         startScanDevice(): any {//开始扫描设备
           // RCSPBluetooth.bleScan.startScan()
+          console.log('开始扫描回连设备');
+
           DeviceManager.starScan()
         },
         isReconnectDevice(scanDevice: BluetoothDevice): boolean { //判断是不是回连设备
@@ -394,7 +444,7 @@ export const veepooJLStartOTAManager = function (value: any, callback: any) {
                 // console.log("新回连广播包 newMAC : " + ab2hex(macArray).toUpperCase())
                 result = oldDeviceMac.toUpperCase() == hex2Mac(macArray).toUpperCase()
               }
-              // console.log("新回连广播包 oldMAC : " + oldDeviceMac + " scanMAC: " + scanDevice.deviceId + " result: " + result + " rawData: " + ab2hex(scanDevice.advertisData));
+              console.log("新回连广播包 oldMAC : " + oldDeviceMac + " scanMAC: " + scanDevice.deviceId + " result: " + result + " rawData: " + ab2hex(scanDevice.advertisData));
             } else {
               console.error("RCSP协议未拿到设备的BLE地址")
             }
@@ -448,26 +498,6 @@ export const veepooJLStartOTAManager = function (value: any, callback: any) {
         otaProgressText: "升级成功"
       }
       callback(message)
-      // wx.showModal({
-      //   title: '提示',
-      //   content: '升级成功',
-      //   showCancel: false,
-      //   success: (res) => {
-      //     if (res.confirm) {
-      //       wx.navigateBack({
-      //         delta: 2
-      //       })
-      //     }
-      //   }
-      // })
-      //  const oldDevice = that.rcspOTAManager.getCurrentOTADevice()
-      // const oldDeviceMac = that.rcspOTAManager.getCurrentOTADeviceMac()
-      //升级完成，释放设备
-
-      // const connectedDeviceIds = RCSPBluetooth.bleConnect.getConnectedDeviceIds()
-      // if (connectedDeviceIds != null) {
-      //     RCSPBluetooth.bleConnect.disconnect(connectedDeviceIds[0])
-      // }
       const connectedDeviceIds = rcspOTAManager.getCurrentOTADevice()?.deviceId
       if (connectedDeviceIds) {
         const bluetoothDevice = new BluetoothDevice()
@@ -483,18 +513,6 @@ export const veepooJLStartOTAManager = function (value: any, callback: any) {
       }
       callback(message)
 
-      // wx.showModal({
-      //   title: '提示',
-      //   content: '升级取消',
-      // })
-
-      //  const oldDevice = that.rcspOTAManager.getCurrentOTADevice()
-      // const oldDeviceMac = that.rcspOTAManager.getCurrentOTADeviceMac()
-      //升级取消，释放设备
-      // const connectedDeviceIds = RCSPBluetooth.bleConnect.getConnectedDeviceIds()
-      // if (connectedDeviceIds != null) {
-      //     RCSPBluetooth.bleConnect.disconnect(connectedDeviceIds[0])
-      // }
       const connectedDeviceIds = rcspOTAManager.getCurrentOTADevice()?.deviceId
       if (connectedDeviceIds) {
         const bluetoothDevice = new BluetoothDevice()
@@ -512,17 +530,6 @@ export const veepooJLStartOTAManager = function (value: any, callback: any) {
         message: message
       }
       callback(msg)
-      // wx.showModal({
-      //   title: '提示',
-      //   content: '升级失败: 错误code：' + error + " 信息：" + message,
-      // })
-      //  const oldDevice = that.rcspOTAManager.getCurrentOTADevice()
-      // const oldDeviceMac = that.rcspOTAManager.getCurrentOTADeviceMac()
-      //升级失败，释放设备
-      // const connectedDeviceIds = RCSPBluetooth.bleConnect.getConnectedDeviceIds()
-      // if (connectedDeviceIds != null) {
-      //     RCSPBluetooth.bleConnect.disconnect(connectedDeviceIds[0])
-      // }
       const connectedDeviceIds = rcspOTAManager.getCurrentOTADevice()?.deviceId
       if (connectedDeviceIds) {
         const bluetoothDevice = new BluetoothDevice()
@@ -637,6 +644,7 @@ const hex2Mac = function (buffer: ArrayBuffer) {
 /*
  ota相关代码结束
 */
+
 
 /*
  照片表盘相关代码开始

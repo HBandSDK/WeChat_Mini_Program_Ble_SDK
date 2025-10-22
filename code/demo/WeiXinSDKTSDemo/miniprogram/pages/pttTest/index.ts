@@ -42,8 +42,6 @@ Page({
   // 监听订阅 notifyMonitorValueChange
   notifyMonitorValueChange() {
     let self = this;
-    // veepooWeiXinSDKNotifyMonitorValueChange
-    // veepooWeiXinSDKNotifyECGValueChange
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
       console.log(" ECG 主服务蓝牙回调=>", e);
       if (e.type == 2000) {

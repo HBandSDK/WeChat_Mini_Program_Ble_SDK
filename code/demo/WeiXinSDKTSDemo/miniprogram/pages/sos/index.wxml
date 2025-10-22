@@ -1,0 +1,16 @@
+<view>
+  <view class="box-btn">
+    <button catch:tap="readSos">读取sos</button>
+  </view>
+  <view style="margin: 50rpx 30rpx;">
+    <view class="ItemInput">
+      <view>sos次数：</view>
+      <view><input style="background-color: aliceblue; padding: 15rpx;" bindinput="getSos" type="number" placeholder="sos次数" /></view>
+    </view>
+  </view>
+  <view class="box-btn">
+    <button catch:tap="setupSos">设置sos</button>
+  </view>
+  <view>当前的times: {{times}}</view>
+</view>
+

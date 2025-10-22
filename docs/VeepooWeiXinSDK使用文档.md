@@ -286,65 +286,6 @@ console.log("e=>",e)
 
 
 
-### 切换设备服务
-
-##### 前提
-
-蓝牙设备已连接
-
-##### 接口
-
-```js
-veepooWeiXinSDKHandoverServiceManager
-```
-
-##### 使用示例
-
-```js
-import { veepooBle} from '../../miniprogram_dist/index'
- veepooBle.veepooWeiXinSDKHandoverServiceManager({ deviceId: '设备id' }, (res: any) => {
-          console.log("服务切换res=>", res)
- });
-
-```
-
-##### 回调
-
-切换设备服务成功状态
-
-------
-
-
-
-### 重连设备
-
-##### 前提
-
-蓝牙设备已连接
-
-##### 接口
-
-```js
-veepooWeiXinSDKBleReconnectDeviceManager
-```
-
-##### 使用示例
-
-```js
-import { veepooBle} from '../../miniprogram_dist/index'
-veepooBle.veepooWeiXinSDKBleReconnectDeviceManager({ deviceId: '设备id' }, (res: any) => {
-   console.log("重连状态=>", res)
- });
-```
-
-##### 回调
-
-设备重连状态
-
-------
-
-
-
 ### 封装蓝牙的相关方法
 
 ```js
@@ -363,18 +304,11 @@ veepooBle.veepooWeiXinSDKBleReconnectDeviceManager({ deviceId: '设备id' }, (re
   veepooWeiXinSDKloseBluetoothAdapterManager, //断开蓝牙
   veepooWeiXinSDKBLEConnectionStateChangeManager, // 蓝牙连接状态
   veepooWeiXinSDKStartScanDeviceAndReceiveScanningDevice, // 获取配置，蓝牙初始化，扫描蓝牙等合集
-  veepooWeiXinSDKBleConnectionServicesCharacteristicsNotifyManager, // 链接蓝牙，获取蓝牙服务，获取特征值等集合
+  veepooWeiXinSDKBleConnectionServicesCharacteristicsNotifyManager, // 连接蓝牙，获取蓝牙服务，获取特征值等集合
   veepooWeiXinSDKNotifyMonitorValueChange, // 订阅信息,监听数据返回等集合
-  veepooWeiXinSDKWriteBLECharacteristicValueLengthManager, // 写入长度无限
   veepooWeiXinSDKGetConnectedBleDeviceManager, // 获取已连接的蓝牙设备
-  veepooWeiXinSDKUpdateECGServiceManager, // 切换ecg多导服务
   veepooWeiXinSDKUpdateDeviceDialServiceManager, // 切换ui服务
-  veepooWeiXinSDKWriteDeviceDialBLECharacteristicValueManager, // 写入ui服务数据
   veepooWeiXinSDKNotifyECGValueChange, // 监听ECG测量特征
-  veepooWeiXinSDKConnectionDevice, // 进行蓝牙连接，A1认证
-  veepooWeiXinSDKRawDataShowStatus, // 原始数据显示
-  veepooWeiXinSDKHandoverServiceManager, // 切换服务
-  veepooWeiXinSDKBleReconnectDeviceManager, // 蓝牙重连
 ```
 
 
@@ -440,15 +374,18 @@ veepooFeature.veepooBlePasswordCheckManager();
 
 ##### 第四包
 
-| bloodComponentType | bodyCompositionType | worldClockType |
-| ------------------ | ------------------- | -------------- |
-| 血液成分功能       | 身体成分功能        | 世界时钟       |
+| bloodComponentType | bodyCompositionType | worldClockType | bodyTemperatureAlarmType | walletType | businessCardType | gameFeatureType | alQuestionAndAnswerType | alDialType | distanceAndCalorieType | videoDialType | photoAlbumPhotosType | 4GFeatureType | electronicBusinessCardType | healthAssistanceType | microCheckType |
+| ------------------ | ------------------- | -------------- | ------------------------ | ---------- | ---------------- | --------------- | ----------------------- | ---------- | ---------------------- | ------------- | -------------------- | ------------- | -------------------------- | -------------------- | -------------- |
+| 血液成分功能       | 身体成分功能        | 世界时钟       | 体温报警                 | 钱包       | 名片             | 游戏功能        | al问答                  | al表盘     | 距离与卡路里目标       | 视频表盘      | 相册相片             | 4G 功能       | 电子名片                   | 健康辅助评估         | 微体检         |
 
 * 血压
 
-  0 无此功能
-  1 有血压功能，血压默认有校准功能
-  2 有血压功能，血压自动监测开关显示成血压自动评估
+  * 0，无此功能
+  * 1，有血压功能，血压默认有校准功能
+  * 2，有血压功能，(DidoFit App)血压自动监测开关显示成血压自动评估
+  * 3，气泵血压类型，无ADC
+  * 4，有血压功能(效果同1)，设备端手动测量单独读取
+  * 5，气泵血压类型，有ADC
 
 * 健康提醒：(原来定义是久坐)
 
@@ -507,10 +444,6 @@ veepooFeature.veepooBlePasswordCheckManager();
   1 精准睡眠
   2 无睡眠   
 
-  4 精准睡眠，数据结构与1一致，曲线修改为2bit表示
-
-  其余：普通睡眠
-
 * Ecg功能标志：
 
   0 没有ecg功能
@@ -538,6 +471,82 @@ veepooFeature.veepooBlePasswordCheckManager();
 
   0 无该功能
   1 有身体成分功能
+  
+* 体温报警
+
+  0 无该功能
+
+  1 有体温过高过低提醒
+
+* 钱包(收款码)
+
+  0 无该功能
+
+  每个平台的有无按照1个BIT确认，0代表无、1代表有，从高BIT位依次是：支付宝、微信、QQ，其他没有用到的预留默认值为0
+
+* 名片
+
+  0 无该功能
+
+  每个平台的有无按照1个BIT确认，0代表无、1代表有，从高BIT位依次是：微信、QQ、Facebook、Instagram，其他没有用到的预留默认值为0
+
+* 游戏功能
+
+  0 无该功能或不需要App上有任何处理
+
+  1 有游戏功能
+
+* AI智能问答
+
+  0 无该功能
+
+  1 有该功能，且为非中国大陆区
+
+  2 有该功能，且为中国大陆区
+
+* AI表盘
+
+  0 无该功能
+
+  1 有该功能，且为非中国大陆区
+
+  2 有该功能，且为中国大陆区
+
+* 运动控制协议支持
+
+  0 不支持
+
+  1 支持
+
+* 相册相片功能
+
+  0 不支持
+
+  1 支持
+
+* 4G功能
+
+  0 不支持
+
+  1 支持
+
+* 电子名片（该功能与钱包功能、名片功能互斥，开启该功能需要关闭钱包功能、名片功能）
+
+  0 不支持
+
+  1 支持
+
+* 健康辅助评估
+
+  0不支持
+
+  大于0 支持
+
+* 微体检功能
+
+  0 不支持APP端
+
+  1 支持APP端
 
 ------
 
@@ -574,9 +583,9 @@ stop 关闭
 
 ##### 第一包
 
-| VPSettingMetric | VPSettingTimeFormat | VPSettingAutomaticHRTest | VPSettingAutomaticBPTest | VPSettingExercise | VPSettingVoiceAnnouncements | VPSettingSearchPhoneInterFace | VPSettingStopwatchInterFace | VPSettingOxygenLowerRemind | VPSettingLedGrade | VPSettingAutomaticHRVTest | VPSettingAutoAnswer | VPSettingDisconnectRemind | VPSettingSOSRemind | VPSettingAutomaticPPGTest | VPSettingMusicControl |
-| --------------- | ------------------- | ------------------------ | ------------------------ | ----------------- | --------------------------- | ----------------------------- | --------------------------- | -------------------------- | ----------------- | ------------------------- | ------------------- | ------------------------- | ------------------ | ------------------------- | --------------------- |
-| 公制/英制       | 12/24小时制         | 心率自动检测             | 血压自动检测             | 运动过量提醒      | 心率/血氧/血压播报          | 手机查找界面显示              | 秒表功能界面显示            | 血氧过低通知（缺氧提醒）   | LED档位           | HRV自动检测               | 来电自动接听        | 蓝牙断连提醒              | 求救页面显示       | PPG自动测量(科学睡眠)     | 音乐控制开关          |
+| VPSettingMetric | VPSettingTimeFormat | VPSettingAutomaticHRTest | VPSettingAutomaticBPTest | VPSettingExercise | VPSettingVoiceAnnouncements | VPSettingSearchPhoneInterFace | VPSettingStopwatchInterFace | VPSettingOxygenLowerRemind | VPSettingLedGrade | VPSettingAutomaticHRVTest | VPSettingAutoAnswer | VPSettingDisconnectRemind | VPSettingSOSRemind | VPSettingAutomaticPPGTest | VPSettingAccurateSleep | VPSettingMusicControl |
+| --------------- | ------------------- | ------------------------ | ------------------------ | ----------------- | --------------------------- | ----------------------------- | --------------------------- | -------------------------- | ----------------- | ------------------------- | ------------------- | ------------------------- | ------------------ | ------------------------- | ---------------------- | --------------------- |
+| 公制/英制       | 12/24小时制         | 心率自动检测             | 血压自动检测             | 运动过量提醒      | 心率/血氧/血压播报          | 手机查找界面显示              | 秒表功能界面显示            | 血氧过低通知               | LED肤色档位       | HRV自动检测               | 来电自动接听        | 蓝牙断连提醒              | 求救页面显示       | PPG自动测量               | 精准睡眠               | 音乐控制开关          |
 
 ##### 第二包
 
@@ -605,7 +614,6 @@ english，表示英制
 **体温单位**：
 degreeCelsius 摄氏度
 fahrenheit 华氏度
-
 
 **血糖单位设置:**
  mmol/L
@@ -848,11 +856,6 @@ content:{
 }
 ```
 
-注意：睡眠期限分为普通睡眠与精准睡眠
-
-普通睡眠：一个字符表示5分钟时长，0表示浅睡，1表示深睡，2表示苏醒
-精准睡眠：一个字符代表一分钟时长，0深睡，1浅睡，2快速眼动，3失眠，4苏醒
-
 ------
 
 
@@ -913,7 +916,7 @@ content:{
   let respirationRate = ''
   // 血压相关  高低压
   let bloodPressure = ''
-  // 50个HRV值
+  // 5个HRV值
   let HRVData = []
   //  血氧相关  取前5个数，代表5个血氧值
   let bloodOxygen = {
@@ -1350,26 +1353,6 @@ everydayData:[{
   weatherByDay:"",// 白天天气
   weatherByNight:"",// 夜间天气
 }]
-/** 
- 天气状态码对应天气状态关系 逐小时的状态与此关系一致
- “()” 表示不包含
- "[]" 表示包含
- [0,   4]          表示 - 晴天
- (4, 12]          表示 - 晴转多云
- (12, 16]        表示 - 阴天
- (16, 20]        表示 - 阵雨
- (20, 24]        表示 - 雷阵雨
- (24, 32]        表示 - 冰雹
- (32, 40]        表示 - 小雨
- (40, 48]        表示 - 中雨
- (48, 56]        表示 - 大雨
- (56, 72]        表示 - 暴雨
- (72, 84]        表示 - 小雪
- (84, 100]      表示 - 大雪
- (100, 155]    表示 - 多云
- 其它 - 未知
- 
- */
 
 ```
 
@@ -1780,7 +1763,9 @@ let data = {
     fromId: 1,// 当前联系人id
     toId: 2,// 目标联系人id
 }
+
 veepooFeature.veepooSendAdjustContactPersonDataManager(data)
+
 ```
 
 ##### 回调
@@ -1792,6 +1777,97 @@ veepooFeature.veepooSendAdjustContactPersonDataManager(data)
   content:{
     settingStatus:true,// 调整成功或失败的布尔值
   }
+}
+```
+
+------
+
+
+
+#### 读取sos
+
+##### 前提
+
+蓝牙设备已连接，且设备支持联系人功能
+
+##### 接口
+
+```js
+veepooSendReadSOSDataManager
+```
+
+##### 传入参数
+
+无
+
+##### 使用示例
+
+```js
+import {veepooFeature } from '../../miniprogram_dist/index'
+
+veepooFeature.veepooSendReadSOSDataManager();
+```
+
+##### 回调
+
+```js
+{
+  name:"SOS",
+  type:12,// 
+  ack:1,// 1 成功 其他失败
+  code:2,// 1 设置 2 读取
+  content:{
+      times:3,// sos次数
+      times_min:1,// 最小设置数
+      times_max:3,// 最大设置数
+  }
+}
+```
+
+------
+
+
+
+#### 设置SOS
+
+##### 前提
+
+蓝牙设备已连接，且设备支持联系人功能
+
+##### 接口
+
+```js
+veepooSendSettingSOSDataManager
+```
+
+##### 传入参数
+
+| 参数  | 类型   | 备注    |
+| ----- | ------ | ------- |
+| times | number | 范围1-3 |
+
+##### 使用示例
+
+```js
+import {veepooFeature } from '../../miniprogram_dist/index'
+
+let data = {
+    times:3,
+}
+veepooFeature.veepooSendSettingSOSDataManager(data);
+```
+
+##### 回调
+
+```js
+{
+  name:"SOS",
+  type:12,// 
+  ack:1,// 1 成功 其他失败
+  code:1,// 1 设置 2 读取
+  content:[{
+      times:3,// sos次数
+  }]
 }
 ```
 
@@ -3390,8 +3466,6 @@ veepooSendAutoTestSwitchDataManager
 
 ##### 传入参数
 
-
-
 | 参数            | 类型   | 备注     |
 | --------------- | ------ | -------- |
 | heartRate       | string | 心率开关 |
@@ -3401,9 +3475,6 @@ veepooSendAutoTestSwitchDataManager
 | bloodGlucose    | string | 血糖开关     |
 | bloodComponents | string | 血液成分开关 |
 | fallWarning | string | 跌倒提醒开关 |
-| lowOxygen | string | 血氧过低（缺氧提醒） |
-
-
 
 ##### 使用示例
 
@@ -3427,6 +3498,57 @@ veepooFeature.veepooSendAutoTestSwitchDataManager(data)
   type:11,// 表示公英制新增开关（开关设置）
   settingStatus:true,// 设置成功 || 设置失败
 }
+```
+
+------
+
+
+
+### 肤色档位设置
+
+##### 前提
+
+设备已连接
+
+##### 接口
+
+```
+veepooSendSkinToneSettingDataManager
+```
+
+##### 参数
+
+| 参数          | 类型   | 备注            |
+| ------------- | ------ | --------------- |
+| skinColorType | number | 肤色类型 0 与 2 |
+| level         | number | 肤色档位        |
+
+##### 使用示例
+
+```typescript
+import { veepooFeature } from '../../miniprogram_dist/index';
+
+veepooFeature.veepooSendSkinToneSettingDataManager({
+  skinColorType: 2,// 肤色类型
+  level: 2,// 肤色档位
+})
+```
+
+skinColorType肤色类型根据功能汇总第一包的skinColorType字段
+
+skinColorType = 0，level有两档位   1 白人模式  2 黑人模式
+
+skinColorType  = 2，level有六档位 1-6档位，1最白 6最黑
+
+G Band肤色等级对应：
+
+```
+0, 1 -> 6
+2, 3 -> 5
+4 -> 4
+5 -> 3
+6, 7 -> 2
+8, 9 -> 1
 ```
 
 ------
@@ -3828,6 +3950,50 @@ apply：应用类型
 
 蓝牙设备已连接，且设备支持自定义表盘功能
 
+
+
+#### 设置自定义背景表盘（切换自定义背景表怕）
+
+##### 前提
+
+设备已连接
+
+##### 接口
+
+```
+veepooSendSwitchCustomBGUIDialManager
+```
+
+**参数**
+
+| 参数      | 类型   | 备注     |
+| --------- | ------ | -------- |
+| control   | number | 控制类型 |
+| style     | number | 风格     |
+| styleType | number | 表盘类型 |
+
+**使用示例**
+
+```js
+import { veepooFeature } from '../../miniprogram_dist/index'
+let data = {
+    control: 1,
+    style: this.style,
+    styleType: this.styleType
+}
+veepooFeature.veepooSendSwitchCustomBGUIDialManager(data)
+```
+
+control   1 设置  2 读取  3 读取
+
+style 风格 根据获取列表
+
+styleType 0  默认表盘  1 表盘市场  2 自定义表盘
+
+------
+
+
+
 #### 设置自定义背景样式
 
 ##### 前提
@@ -4001,25 +4167,10 @@ veepooFeature.veepooSendECGmeasureStartDataManager();
 
 ```js
 
-
-// 测试说明包
-{
-   name: "ecg测量", // 名称
-   type: 42, //
-   dataType:0,
-   progress: 7, 
-   content:{
-       samplingFreq:256,// 采样频率
-       waveFrequency:256,// 波形频率
-   }
-}
-
-
 // 每秒进度包回调
  {
   "name": "ecg测量", // 名称
   "type": 42, // type 等于42表示 ECG功能回调
-  "dataType":1,// 每秒进度包
   "progress": 7, // 当前进度 0-100
   "content": {
     "wristbandStatus": "open", // 手环状态   open 空闲，测试开启状态  testPPG 手环正在测量PPG  charging  充电中  lowVoltage 低电中
@@ -4041,18 +4192,22 @@ veepooFeature.veepooSendECGmeasureStartDataManager();
 // 每秒ECG波形数据
 
 {
+
   name:"ecg波形数据",
   type:42,// 42表示ECG功能回调
   content:[],// 每秒波形数据 每秒有四个包返回
 }
 
 
+
+
 // 测量结束回调
+
+
 {
   
   name:"ecg测量",
   type:42,// type 等于42表示 ecg功能回调
-  dataType:4,
   content:{
       leadOffType,//导联类型    注意，导联脱落超过四次，需要应用层需要结束本次测量，重新测量
       diagParamBuf: arr, // 八个诊断数据
@@ -4060,6 +4215,8 @@ veepooFeature.veepooSendECGmeasureStartDataManager();
       respiratoryRate,//呼吸率
       hrv,// hrv
       QTC,// QTC
+
+   
       diseaseRisk,//疾病风险     
       pressureIndex,//压力指数    
       fatigueIndex,/疲劳指数    
@@ -4067,6 +4224,9 @@ veepooFeature.veepooSendECGmeasureStartDataManager();
       coronaryHeartDisease,// 冠心病风险    
       angiosclerosisRisk,//血管硬化风险    
       riskParam32,// 32个疾病信息    
+
+      
+
       qrsTime, // qrs时长
       qrsAmp,//qrs振幅
       pwvMeanVal,//pwv均值
@@ -4076,65 +4236,6 @@ veepooFeature.veepooSendECGmeasureStartDataManager();
   } 
 }
 ```
-
-
-
-dataType 类似
-
-0 表示测量说明包
-
-1 表示每秒测量包
-
-2 表示诊断结果，不表示测量结束
-
-3 代表测量失败
-
-4 代表正常测量结束
-
-5 表示诊断结果，会在4返回
-
-
-
-riskParam32疾病信息
-
-```
-// 按32个疾病信息顺序排列
-
-// 窦性停搏
-// 窦性心律不齐
-// 窦性心动过缓
-// 窦性心动过速
-// 房性早搏
-// 三联律
-// 二联律
-// 室性早搏
-// 心房扑动
-// 阵发性室性心动过速
-// 阵发性室上性心动过速
-// 交界性早搏
-// 心房肥大
-// 心室颤动
-// 心室扑动
-// 心房颤动
-// 心肌梗死（损伤型）
-// 心肌梗死（缺血型）
-// 心肌缺血
-// 心室肥大
-// 房性逸搏
-// 室性逸搏
-// 交界性逸搏
-// 心肌梗死（坏死型）
-// 三度房室传导阻滞
-// 二度房室传导阻滞——II 型
-// 二度房室传导阻滞——I 型
-// 一度房室传导阻滞
-// 预激综合征（WPW）
-// 左前分支传导阻滞（LAFB）
-// 右束支传导阻滞（RBBB）
-// 左束支传导阻滞（LBBB）
-```
-
-
 
 ------
 
@@ -4281,9 +4382,6 @@ veepooFeature.veepooSendReadIdTestSeavDataManager(data);
     meanRespiratoryRate,//平均呼吸
     averageHRV,//平均HRV
     averageTimeInterval,//平均QT时间间隔
-    sampling_frequency,// 采样频率
-    upload_frequency,// 波形频率（绘制使用）
-    power,// 增益
     totalSecond, // 总时间
     diseaseInfo, // 疾病信息
     wavefrom, // 每秒b2数据
@@ -4321,6 +4419,113 @@ wavefrom：[
   }
 ]
 
+```
+
+------
+
+
+
+### 获取ECG基本信息文本
+
+##### 前提
+
+该设备已开启ECG全部功能
+
+##### 接口
+
+```
+veepooGetDiseaseTextManager
+```
+
+##### 参数
+
+| 参数          | 类型     | 备注          |
+| ------------- | -------- | ------------- |
+| heartRate     | number   | 心率          |
+| diseaseResult | number[] | ecg 8个诊断值 |
+
+##### 使用示例
+
+```typescript
+import {veepooFeature } from './veepoo_sdk/index'
+
+
+let data = veepooFeature.veepooGetDiseaseTextManager({
+  heartRate: 77,
+  diseaseResult: [0, 0, 0, 0, 0, 0, 0, 0]
+});
+console.log('ecg文本data==>', data);
+
+```
+
+##### 返回类型
+
+```
+[{
+    type: 1,
+    text: "信号太弱"
+  },
+  {
+    type: 2,
+    text: "心率过高"
+  },
+  {
+    type: 3,
+    text: "心率过低"
+  },
+  {
+    type: 4,
+    text: "窦性心律"
+  },
+  {
+    type: 5,
+    text: "窦性心动过速"
+  },
+  {
+    type: 6,
+    text: "窦性心动过缓"
+  },
+  {
+    type: 7,
+    text: "窦性心律不齐"
+  },
+  {
+    type: 8,
+    text: "窦性停搏"
+  },
+  {
+    type: 9,
+    text: "室性早搏"
+  },
+  {
+    type: 10,
+    text: "二联律"
+  },
+  {
+    type: 11,
+    text: "三联律"
+  },
+  {
+    type: 12,
+    text: "阵发性室性心动过速"
+  },
+  {
+    type: 13,
+    text: "心房扑动"
+  },
+  {
+    type: 14,
+    text: "心室扑动"
+  },
+  {
+    type: 15,
+    text: "心肌缺血"
+  },
+  {
+    type: 16,
+    text: "房性逸搏"
+  }
+]
 ```
 
 ------
@@ -4387,7 +4592,24 @@ veepooFeature.veepooSendBodyCompositionTestStopDataManager();
 }
 ```
 
-------
+
+
+| 数据类型   | 有效范围        | 偏低范围                         | 正常范围                           | 偏高范围                           | 过高范围                           |
+| ---------- | --------------- | -------------------------------- | ---------------------------------- | ---------------------------------- | ---------------------------------- |
+| BMI        | [4,1114] kg/m2  | [4,18.5)<br/>偏低                | [18.5,24.0)<br/>正常               | [24.0,28.0)<br/>超重               | [28.0,1114]<br/>肥胖               |
+| 体脂率     | [2,48]%         | 男 [2,17]<br/>女 [2,25]<br/>偏低 | 男 [18,22]<br/>女 [26,31]<br/>正常 | 男 [23,29]<br/>女 [32,39]<br/>超重 | 男 [30,48]<br/>女 [40,48]<br/>肥胖 |
+| 脂肪量     | [10,248] kg     |                                  |                                    |                                    |                                    |
+| 去脂体重   | [1,132] kg      | [1,45.8)<br/>偏低                | [45.8,55.9]<br/>标准               | (55.9,132]<br/>优秀                |                                    |
+| 肌肉率     | [39,90]%        | [39,68.1)<br/>偏低               | [68.1,84.8]<br/>标准               | (84.8,90]<br/>优秀                 |                                    |
+| 肌肉量     | [9,248] kg      | [9,40.8)<br/>偏低                | [40.8,50.8]<br/>标准               | (50.8,248]<br/>优秀                |                                    |
+| 皮下脂肪   | [1,47]%         | [1,8.6)<br/>偏低                 | [8.6,16.7]<br/>正常                | (16.7,47]<br/>偏高                 |                                    |
+| 体内水分   | [28,79]%        | [28,53.4)<br/>偏低               | [53.4,66.6]<br/>标准               | (66.6,79]<br/>优秀                 |                                    |
+| 含水量     | [7,217] kg      |                                  |                                    |                                    |                                    |
+| 骨骼肌率   | [13,69]%        | [13,25)<br/>偏低                 | [25,35]<br/>标准                   | (35,69]<br/>优秀                   |                                    |
+| 骨量       | [2.3,4.8] kg    | [2.3,2.9)<br/>偏低               | [2.9,3.7]<br/>标准                 | (3.7,4.8]<br/>优秀                 |                                    |
+| 蛋白质占比 | [4,26]%         | [4,14.1)<br/>偏低                | [14.1,17.7]<br/>标准               | (17.7,26]<br/>优秀                 |                                    |
+| 蛋白质量   | [1,71] kg       |                                  |                                    |                                    |                                    |
+| 基础代谢   | [25,14995] kcal | [25,1619)<br/>偏低               | [1619,14995]<br/>优秀              |                                    |                                    |
 
 
 
@@ -4650,241 +4872,289 @@ let data = {
 
 
 
-### 心率测量
+### 读取手动测量数据
 
 ##### 前提
 
-设备已连接
+设备已连接，且设备支持相关手动测量功能，目前只具备气泵血压
 
 ##### 接口
 
+```js
+veepooSendManualMeasurementDataReadManager()
 ```
-veepooFeature.veepooSendHeartRateTestSwitchManager()
-```
 
-##### 参数
+##### 传入参数
 
-| 参数   | 类型    | 备注                  |
-| ------ | ------- | --------------------- |
-| switch | boolean | true 开启  false 关闭 |
+| 参数      | 类型   | 备注        |
+| --------- | ------ | ----------- |
+| timestamp | Number | 时间戳 秒级 |
+| dataType  | Number | 数据类型    |
 
-##### 使用示例
+timestamp  时间戳秒级  如获取今天的全部手动测量数据 需传入当天0点01秒的时间戳
 
-```typescript
-import { veepooFeature } from '../../miniprogram_dist/index'
-let data = {switch:true}
-veepooFeature.veepooSendHeartRateTestSwitchManager(data)
+dataType 数据类型  0 血压 1 心率 2 血糖 3 压力 4 血氧 5 体温 6 梅拖 7 hrv 8 血液成分 9 微体检 10 情绪 11 疲劳度 12 皮电
+
+##### 使用
+
+```js
+let data = {
+      timestamp: 1755313815,
+      dataType: 0
+    }
+veepooFeature.veepooSendManualMeasurementDataReadManager(data)
 ```
 
 ##### 回调
 
 ```
 {
-	name:"心率测量",
-	type:51,
-	content:{
-		heartRate:0,// 心率
-		heartState:0,// 心率状态
-		watchState:0,// 手环状态
-	}
+	"name": "手动测量读取", 
+	"type": 53, 
+	"dataType": 0, // 数据类型  0 血压 1 心率 .....
+	"progress": 100, // 读取进度
+	"content": [
+		{
+		"timestamp": 1755311819, // 当条测量数据时间戳
+		"dataType": 1, // 当前血压类型  0 普通血压  1 气泵血压
+		"BasicData": {
+			"Mode": 1, // 测量模式
+			"heartRate": 91, // 心率
+			"high": 109, // 高压
+			"low": 67, //  低压
+			"status": 1, // 测量状态
+			"credibility": 10 // 结果可信度
+			}, 
+		"UserData": {
+			"height": 170,// 身高 
+			"weight": 60, // 体重
+			"age": 31, // 年龄
+			"sex": 1// 性别 
+			}
+		}
+	]
 }
-```
-
-心率状态：0 无  1 心率不齐
-
-手环状态：
-
-0 空闲 
-
-1 手环测试血压状态
-
-2 手环测试心率状态
-
-3 手环测试血氧状态
-
-4 手滑测试疲劳度状态
-
-5 手环测试ecg中
-
-10 设备低电
 
 
-
-### 获取洛伦兹散点图数据
-
-##### 前提
-
-设备已连接
-
-##### 接口
-
-```
-veepooFeature.veepooGetLorentzScatterPlotData();
-```
-
-##### 使用示例
-
-```
-import { veepooFeature } from '../../miniprogram_dist/index'
-let rr50Arrays = [];// 7小时或全天 rr50总数据，在日常数据中获取，字段rr50
-let result = veepooFeature.veepooGetLorentzScatterPlotData(rr50Arrays);
-
-```
-
-##### 返回
-
-```js
+// 微体检
 {
-    type:52,
-    name:"洛伦兹散点图",
-    content:[{}],//散点图数组
+	"timestamp": 1760645025, // 时间
+	"dataType": 0, // 数据类型
+	"heart": 79, // 心率
+	"oxygen": 98, // 血氧
+	"pressure": 11, // 压力
+	"emotion": 0, // 情绪
+	"fatigue": 0, // 疲劳度
+	"bloodSugar": 5.31, // 血糖
+	"bodyTemperature": 0, // 体温
+	"bodySurfaceTemperature": 0,// 体表温度 
+	"highPressure": 119, // 高压
+	"lowPressure": 86, // 低压
+	"hrv": 101// hrv
 }
 
-// 散点图数据
+```
+
+
+
+### 微体检测量
+
+##### 前提
+
+设备已连接，且设备支持微体检测量  (功能类型第4包)
+
+##### 接口
+
+```
+veepooSendMicroCheckDataManager
+```
+
+##### 传入参数
+
+| 参数   | 类型   | 备注                 |
+| ------ | ------ | -------------------- |
+| switch | string | start 开启 stop 关闭 |
+
+##### 使用示例
+
+```
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
+
+// start 开启  stop 关闭
+veepooFeature.veepooSendMicroCheckDataManager({ switch: 'start' });
+```
+
+##### 回调
+
+```
+
+// 微体检返回
 {
-    x:number,// 散点图x轴
-    y:number,// 散点图y轴
-    color:string,// 散点图颜色
-}
-```
-
-洛伦兹散点图包括热力图，散点图，散点图坐标一致
-
-**注意：传入的rr50Arrays 分为  7小时（夜间）HRV，全天HRV，需要根据  ”手环功能汇总“ 第二包的  HRVType字段做判断**
-
-HRVType 字段
-
-0 无此功能
-
-1 和 2 表示夜间HRV
-
-3 和 4 表示全天HRV
-
-
-
-### 获取HRV洛伦兹星级数据
-
-##### 前提
-
-设备已连接
-
-##### 接口
-
-```
-veepooFeature.veepooGetLorentzScatterPlotStarIndex();
-```
-
-##### 使用示例
-
-```
-import { veepooFeature } from '../../miniprogram_dist/index'
-let rr50Arrays = [];// 7小时或全天 rr50总数据，在日常数据中获取，字段rr50
-let result = veepooFeature.veepooGetLorentzScatterPlotStarIndex(rr50Arrays);
-```
-
-##### 返回
-
-```typescript
- [
-     {"type": 1, "starIndex": 5, "code": 11},// 心率变化
-     {"type": 2, "starIndex": 3, "code": 12},// 心率突变
-     {"type": 3, "starIndex": 5, "code": 15},// 神经状态
-     {"type": 4, "starIndex": 4, "code": 12}// 心率变化
- ]
-```
-
-starIndex  星级
-
-code 文案code，在sdkDemo utlis =>hrv_font_tips.js文件获取文案
-
-
-
-### 获取HRV洛伦兹相似度数据
-
-##### 前提
-
-设备已连接
-
-##### 接口
-
-```
-veepooFeature.VeepooGetLorentzScatterPlotSimilarity();
-```
-
-##### 使用示例
-
-```
-import { veepooFeature } from '../../miniprogram_dist/index'
-let rr50Arrays = [];// 7小时或全天 rr50总数据，在日常数据中获取，字段rr50
-let result = veepooFeature.VeepooGetLorentzScatterPlotSimilarity(rr50Arrays);
-```
-
-##### 返回
-
-```
+    type: 53,
+    name: "微体检",
+    control: 1, // 1 开启 2 关闭
+    dataType: 1,// 数据类型  0 进度包 1 测量成功报告数据  2 测量失败无结果数据 3 设备正忙 4 设备低电
+    progress: 100,// 进度
+    content: {
+      heartRate: 0,// 心率
+      bloodOxygen:0,// 血氧
+      pressure: 0,//  压力
+      emotion: 0,// 情绪 值域[-10,10]
+      fatigueLevel: 0,// 疲劳度
+      bloodSugar: 0,// 血糖
+      bodyTemperature: 0,// 体温
+      highPressure: 0,// 高压
+      lowPressure: 0,// 低压
+      hrv:0,// hrv
+    }
+ }
+ 
+ 
+ // 每秒心率
  {
- "type": 52,
- "name": "洛伦兹相似度",
- "content": {
- "luoentz_index": [7, 4, 16, 17],
- "luoentz_pro": [60.78571850394544, 60.60370664931875, 55.977981226257754, 52.45172229160067]
-  }
+    "type": 51,
+    "name": "心率测量",
+    "content": {
+        "heartRate": 88,
+        "heartState": 0,
+        "watchState": 0
+     }
+   }
+ 
+ // ppg数据
+ {
+ 	"name": "ppg数据", 
+ 	"type": 54,
+    "content": [48703, 48610, 48542, 48426, 48116, 48125, 48139, 48047, 48012, 48185, 48718, 49417, 49726, 50051, 50409, 50424, 50425, 50538, 50463, 50285, 50208, 50166, 50100, 49981, 50005]
  }
 ```
 
-luoentz_index  对应相似度code
-
-luoentz_pro  对应相似度百分比，向上取整
-
-相似度对应code 1-24，如图中code= 7 的图排第一位，code=4的图排第二位，依次排完四个后，按照原来循序进行排布，相似度图形需要找“项目”获取，sdk不提供
 
 
-
-### 语言设置
+### 自动测量功能读取
 
 ##### 前提
 
-设备已连接
+设备已连接，且设备支持B3自动测量功能(功能类型第4包)
 
 ##### 接口
 
 ```
- veepooFeature.veepooSendLanguageSetupManager()
+veepooSendReadB3AutoTestFeatureDataManager
 ```
 
-##### ****参数****
+##### 无
 
-| 参数     | 类型   | 备注 |
-| -------- | ------ | ---- |
-| language | number | 1-35 |
-
-语言列表
-
-| 1      | 2      | 3      | 4      | 5      | 6      | 7        | 8        | 9      | 10           | 11       | 12       | 13     | 14     | 15       |
-| ------ | ------ | ------ | ------ | ------ | ------ | -------- | -------- | ------ | ------------ | -------- | -------- | ------ | ------ | -------- |
-| 中文   | 英文   | 日语   | 韩语   | 德语   | 俄语   | 西班牙语 | 意大利语 | 法语   | 越南语       | 葡萄牙语 | 繁体     | 泰语   | 波兰语 | 瑞典语   |
-| **16** | **17** | **18** | **19** | **20** | **21** | **22**   | **23**   | **24** | **25**       | **26**   | **27**   | **28** | **29** | **30**   |
-| 土耳其 | 荷兰语 | 捷克语 | 阿拉伯 | 匈牙利 | 希腊   | 罗马尼亚 | 斯洛伐克 | 印尼   | 巴西葡萄牙语 | 克罗地亚 | 立陶宛亚 | 乌克兰 | 印地语 | 希伯来语 |
-| **31** | **32** | **33** | **34** | **35** |        |          |          |        |              |          |          |        |        |          |
-| 丹麦语 | 波斯语 | 芬兰语 | 马来语 | 朝鲜语 |        |          |          |        |              |          |          |        |        |          |
-
-##### ****使用示例****
+##### 使用示例
 
 ```
-import { veepooFeature } from '../../miniprogram_dist/index'
-    let val = {
-      language: 2
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
+
+// 读取自动测量功能
+veepooFeature.veepooSendReadB3AutoTestFeatureDataManager();
+```
+
+##### 回调
+
+```javascript
+ {
+ 	"name": "自动测量功能", 
+ 	"type": 54, 
+ 	"control": 2, // 1 设置 2 读取
+ 	"progress": 100, // 进度
+ 	"content": [
+ 		{
+ 			"p_protocol_type": 0, // 协议类型 不可更改
+ 			"p_fun_type_content": 0, // 功能类型 0~8数据对应 脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分  可修改
+ 			"p_fun_switch": 1, // 0 关闭 1 开启  可修改
+ 			"p_step_unit": 30, // 支持最小的步进，分 不可修改
+ 			"p_time_slot_modify": 1, // 不可修改
+ 			"p_time_interval_modify": 1, // 不可修改
+ 			"p_support_time_slot": { // 支持测试的时间段  不可修改
+ 				"startTime": "0:0", // 表示全天可修改
+ 				"stopTime": "0:0"
+ 				}, 
+ 			"p_meas_inv": 30, // 测量间隔 可修改  根据p_step_unit 大小  如30，那么间隔30
+ 			"p_cur_time_slot": {// 当前的测试时间段 可修改
+ 				"startTime": "0:0", 
+ 				"stopTime": "0:0"
+ 				}
+ 			}
+ 		]
+ }
+```
+
+
+
+### 自动测量功能设置
+
+##### 前提
+
+设备已连接，且设备支持B3自动测量功能(功能类型第4包)
+
+##### 接口
+
+```
+veepooSendReadB3AutoTestFeatureDataManager
+```
+
+##### 参数
+
+```
+// 全部为number类型
+{
+      "p_protocol_type": 0,// 不可修改
+      "p_fun_type_content": 2,// 功能类型 0~8数据对应 脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分  可修改
+      "p_fun_switch": 1,// 0 关闭 1 开启  可修改
+      "p_step_unit": 30,// 支持最小的步进，分 不可修改
+      "p_time_slot_modify": 1,// 不可修改
+      "p_time_interval_modify": 1,// 不可修改
+      "p_support_time_slot": { // 支持测试的时间段  不可修改
+        "startTime": "0:0",// 开始时间  
+        "stopTime": "0:0"// 结束时间  
+      },
+      "p_meas_inv": 60,// 测量间隔 可修改  根据p_step_unit 大小  如30，那么间隔30
+      "p_cur_time_slot": { // 当前的测试时间段 可修改
+        "startTime": "01:00",// 开始时间
+        "stopTime": "10:0"// 结束时间
+      }
     }
-veepooFeature.veepooSendLanguageSetupManager(val)
 ```
 
-##### ****返回****
+
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
+
+// 开始设置
+veepooFeature.veepooSendSetupB3AutoTestFeatureDataManager({
+  "p_protocol_type": 0,// 不可修改
+  "p_fun_type_content": 2,// 功能类型 0~8数据对应 脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分  可修改
+  "p_fun_switch": 1,// 0 关闭 1 开启  可修改
+  "p_step_unit": 30,// 支持最小的步进，分 不可修改
+  "p_time_slot_modify": 1,// 不可修改
+  "p_time_interval_modify": 1,// 不可修改
+  "p_support_time_slot": { // 支持测试的时间段  不可修改
+    "startTime": "0:0",// 开始时间  
+    "stopTime": "0:0"// 结束时间  
+  },
+  "p_meas_inv": 60,// 测量间隔 可修改  根据p_step_unit 大小  如30，那么间隔30
+  "p_cur_time_slot": { // 当前的测试时间段 可修改
+    "startTime": "01:00",// 开始时间
+    "stopTime": "10:0"// 结束时间
+  }
+})
+```
+
+##### 回调
 
 ```
 {
-	name:"语言设置",
-	type:52,
-	ack:1,// 0 设置失败  1 设置成功
+ 	"name": "自动测量功能", 
+ 	"type": 54, 
+ 	"control": 1, // 1 设置 2 读取
 }
 ```
 

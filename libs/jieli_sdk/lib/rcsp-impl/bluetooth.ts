@@ -155,7 +155,6 @@ export class BleConnect implements RCSPWrapperBluetooth.IBleConnect {
         },
         /** 连接断开*/
         onConnectDisconnect: (device: BluetoothDevice) => {
-          console.log("this._callbacks连接断开==>",this._callbacks)
             this._callbacks.forEach(c => {
                 if (c.onConnectDisconnect) {
                     c.onConnectDisconnect(device);

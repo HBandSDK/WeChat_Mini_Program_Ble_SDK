@@ -3,26 +3,32 @@
   "projectname": "WeiXinSDKTSDemo",
   "setting": {
     "compileHotReLoad": true,
-    "urlCheck": false,
-    "bigPackageSizeSupport": true
+    "urlCheck": true,
+    "bigPackageSizeSupport": true,
+    "coverView": false,
+    "lazyloadPlaceholderEnable": false,
+    "skylineRenderEnable": false,
+    "preloadBackgroundData": false,
+    "autoAudits": false,
+    "useApiHook": true,
+    "useApiHostProcess": true,
+    "showShadowRootInWxmlPanel": false,
+    "useStaticServer": false,
+    "useLanDebug": false,
+    "showES6CompileOption": false,
+    "checkInvalidKey": true,
+    "ignoreDevUnusedFiles": true
   },
-  "libVersion": "3.5.3",
+  "libVersion": "3.8.9",
   "condition": {
     "miniprogram": {
       "list": [
         {
-          "name": "pages/waveform/index",
-          "pathName": "pages/waveform/index",
+          "name": "pages/xdt/index",
+          "pathName": "pages/xdt/index",
           "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/ecgRead/index",
-          "pathName": "pages/ecgRead/index",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
+          "scene": null,
+          "launchMode": "default"
         }
       ]
     }

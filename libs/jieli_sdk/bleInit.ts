@@ -25,7 +25,7 @@ export class veepooJLBle {
       wx.setStorageSync('getServiceStatus', false)
       const logger = getLogger()
       if (logger != null) {
-        console.log('logger=>',logger)
+        console.log('logger=>', logger)
         setOTALogger(logger)
         setRCSPLogger(logger)
         setAppLogger(logger)
@@ -60,6 +60,8 @@ export class veepooJLBle {
           switch (event.type) {
             case 'onBleDataBlockChanged'://调整mtu成功
               const eventInfo = event.onBleDataBlockChangedEvent;
+              console.log('eventInfo==>', eventInfo);
+
               console.log("调整mtu成功")
               if (eventInfo && eventInfo.status == 0) {
                 BleSendDataHandler.setMtu(eventInfo.device.deviceId, eventInfo.block);

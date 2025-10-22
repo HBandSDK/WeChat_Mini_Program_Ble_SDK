@@ -2,6 +2,10 @@
 import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
 import { veepooJLGetFileDataManager, veepooJLAddDialTransferStartManager, veepooJLAuthenticationManager, veepooJLGetDialListManager, veepooJLDeleteDialManager } from '../../jieli_sdk/index';
 import { BleDataHandler } from '../../jieli_sdk/lib/ble-data-handler';
+import { RCSPManager, RCSP } from "../../jieli_sdk/lib/rcsp-impl/rcsp";
+import { DeviceManager, DeviceBluetooth } from "../../jieli_sdk/lib/rcsp-impl/dev-bluetooth";
+import { BluetoothDevice } from "../../jieli_sdk/lib/rcsp-protocol/rcsp-util";
+
 
 Page({
 
@@ -15,10 +19,10 @@ Page({
     fileData: {},
     transferProgressText: '',
     dialList: {},// 设备表盘列表
-    getIndex:1,// 请求的页数
+    getIndex: 1,// 请求的页数
 
   },
-
+  _RCSPWrapperEventCallback: RCSP.RCSPWrapperEventCallback.prototype,
   /**
    * 生命周期函数--监听页面加载
    */
@@ -27,6 +31,33 @@ Page({
     this.setData({
       device: device
     });
+
+    // 注意，需先订阅vp指令，在订阅杰里
+    this.notifyMonitorValueChange();
+
+    setTimeout(() => {
+      BleDataHandler.init();// 接受杰理数据
+    }, 100);
+
+    this._RCSPWrapperEventCallback = new RCSP.RCSPWrapperEventCallback()
+    this._RCSPWrapperEventCallback.onEvent = (event) => {
+      if (event.type === "onSwitchUseDevice") {
+        const connectedDeviceId = event.onSwitchUseDeviceEvent?.device?.deviceId
+        console.log(" onSwitchUseDevice111: " + connectedDeviceId);
+        this.setData({
+          connectedDeviceId: connectedDeviceId == undefined ? "" : connectedDeviceId
+        })
+
+        if (connectedDeviceId != undefined) {
+          setTimeout(() => {
+            console.log('==================================认证成功=====================================');
+
+          }, 300);
+        }
+      }
+    }
+    RCSPManager.observe(this._RCSPWrapperEventCallback)
+
   },
 
   /**
@@ -34,7 +65,6 @@ Page({
    */
   onReady() {
 
-    this.notifyMonitorValueChange();
   },
 
   /**
@@ -72,6 +102,7 @@ Page({
 
   },
 
+
   /**
    * 用户点击右上角分享
    */
@@ -89,19 +120,19 @@ Page({
   },
 
   // 添加获取页数
-  addGetIndex(){
+  addGetIndex() {
 
     this.setData({
-      getIndex:this.data.getIndex + 1
+      getIndex: this.data.getIndex + 1
     })
     this.getData();
   },
 
   // 减少获取页数
-  removeGetIndex(){
-    if(this.data.getIndex != 1){
+  removeGetIndex() {
+    if (this.data.getIndex != 1) {
       this.setData({
-        getIndex:this.data.getIndex - 1
+        getIndex: this.data.getIndex - 1
       })
     }
 
@@ -119,8 +150,12 @@ Page({
     // dialInfo: { "dataAddress": dialInfo.dataAddress, "writeDataLength": dialInfo.writeDataLength, "binProtocol": dialInfo.binProtocol, "dataUseType": dialInfo.dataUseType, "dialShape": dialInfo.dialShape, "ImageId": dialInfo.ImageId },
     console.log('这个时获取的dailInfo==>', dialInfo)
     let data = {
-      version: "00.77.05.00-5097",
+      version: "11.95.01.00-6702",
       // version: "01.05.02.00-5376",
+      // version: "01.05.02.00-5840",
+      // dialInfo: { "dataAddress": 0, "writeDataLength": 614733, "binProtocol": 2, "dataUseType": 1, "dialShape": 56, "ImageId": 0 },
+      // dialInfo: { "dataAddress": dialInfo.dataAddress, "writeDataLength": dialInfo.writeDataLength, "binProtocol": dialInfo.binProtocol, "dataUseType": dialInfo.dataUseType, "dialShape": dialInfo.dialShape, "ImageId": dialInfo.ImageId },
+      // dialInfo: { "dataAddress": 0, "writeDataLength": 532597, "binProtocol": 2, "dataUseType": 1, "dialShape": 48, "ImageId": 0 },
       // version: "01.05.02.00-5840",
       // dialInfo: { "dataAddress": dialInfo.dataAddress, "writeDataLength": dialInfo.writeDataLength, "binProtocol": dialInfo.binProtocol, "dataUseType": dialInfo.dataUseType, "dialShape": dialInfo.dialShape, "ImageId": dialInfo.ImageId },
       dialInfo: { "dataAddress": 0, "writeDataLength": 614733, "binProtocol": 2, "dataUseType": 1, "dialShape": 56, "ImageId": 0 },
@@ -128,9 +163,6 @@ Page({
       pageSize: 24,// 数据条数
     }
 
-
-
-    
     let resut = veepooFeature.veepooGetNetworDialManager(data);
     resut.then((result: any) => {
       console.log("resut==>", result.data)
@@ -155,18 +187,15 @@ Page({
 
   },
 
-  notifyJLData() {
-    BleDataHandler.init();// 接受杰理数据
-  },
 
   // 杰理认证
   setJLVerify() {
     let self = this;
-    let device = wx.getStorageSync('bleInfo')
+    let info = wx.getStorageSync('bleInfo')
     // 杰里设备认证
-    veepooJLAuthenticationManager(device, (res: any) => {
-      console.log("杰理认证状态==>", res)
-    })
+    let device = info as BluetoothDevice;
+
+    DeviceManager.connecDevice(device);
   },
 
   // 开始传输
