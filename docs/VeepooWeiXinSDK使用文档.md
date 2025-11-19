@@ -852,9 +852,15 @@ content:{
           insomniaScore, // 失眠得分
           insomniaCount, //失眠次数
           sleepCurve, //睡眠曲线
-}
+ }
 }
 ```
+
+睡眠曲线：“11111111111111111111111111000000000000000000000000011111111111122222222211111111111114444411111111111111111114444”
+
+0深睡，1浅睡，2快速眼动，3失眠，4苏醒
+
+如何使用：参考G Band（android，ios，HarmonyOS）取 0 1 2 4，小程序可使用canvas绘制睡眠曲线，在高度100，宽度自定义的画布绘制，每段25高度，使用不同颜色绘制区分曲线值。
 
 ------
 
@@ -3557,11 +3563,11 @@ G Band肤色等级对应：
 
 ### ota升级
 
-注意：文档中包含ota升级的各种接口，使用示例的简单应用，具体的ota升级逻辑可以在sdkdemo中查看
+注意：文档中包含ota升级的各种接口，使用示例的简单应用，具体的ota升级逻辑可以在sdkdemo中查看，ota升级成功后，需要手动恢复出厂设置（带升级成功后自动恢复出厂可不用），否则可能会导致数据混乱。
 
 ##### 前提
 
-设备已连接，且设备市场远程ota功能，已进行杰里认证
+设备已连接，已进行杰里认证，且设备支持远程ota功能
 
 ##### 接口
 
@@ -5067,10 +5073,10 @@ veepooFeature.veepooSendReadB3AutoTestFeatureDataManager();
  			"p_protocol_type": 0, // 协议类型 不可更改
  			"p_fun_type_content": 0, // 功能类型 0~8数据对应 脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分  可修改
  			"p_fun_switch": 1, // 0 关闭 1 开启  可修改
- 			"p_step_unit": 30, // 支持最小的步进，分 不可修改
- 			"p_time_slot_modify": 1, // 不可修改
- 			"p_time_interval_modify": 1, // 不可修改
- 			"p_support_time_slot": { // 支持测试的时间段  不可修改
+ 			"p_step_unit": 30, // 支持最小的步进，分 
+ 			"p_time_slot_modify": 1, // 是否支持时间段修改 0 不可修改 1 
+ 			"p_time_interval_modify": 1, // 是否支持时间间隔修改  0 不可修改 1 支持修改
+  			"p_support_time_slot": { // 支持测试的时间段  不可修改
  				"startTime": "0:0", // 表示全天可修改
  				"stopTime": "0:0"
  				}, 
@@ -5100,15 +5106,15 @@ veepooSendReadB3AutoTestFeatureDataManager
 
 ##### 参数
 
-```
+```javascript
 // 全部为number类型
 {
       "p_protocol_type": 0,// 不可修改
       "p_fun_type_content": 2,// 功能类型 0~8数据对应 脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分  可修改
       "p_fun_switch": 1,// 0 关闭 1 开启  可修改
-      "p_step_unit": 30,// 支持最小的步进，分 不可修改
-      "p_time_slot_modify": 1,// 不可修改
-      "p_time_interval_modify": 1,// 不可修改
+      "p_step_unit": 30, // 支持最小的步进，分 
+      "p_time_slot_modify": 1, // 是否支持时间段修改 0 不可修改 1 
+      "p_time_interval_modify": 1, // 是否支持时间间隔修改  0 不可修改 1 支持修改
       "p_support_time_slot": { // 支持测试的时间段  不可修改
         "startTime": "0:0",// 开始时间  
         "stopTime": "0:0"// 结束时间  
@@ -5133,9 +5139,9 @@ veepooFeature.veepooSendSetupB3AutoTestFeatureDataManager({
   "p_protocol_type": 0,// 不可修改
   "p_fun_type_content": 2,// 功能类型 0~8数据对应 脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分  可修改
   "p_fun_switch": 1,// 0 关闭 1 开启  可修改
-  "p_step_unit": 30,// 支持最小的步进，分 不可修改
-  "p_time_slot_modify": 1,// 不可修改
-  "p_time_interval_modify": 1,// 不可修改
+  "p_step_unit": 30, // 支持最小的步进，分 
+  "p_time_slot_modify": 1, // 是否支持时间段修改 0 不可修改 1 
+  "p_time_interval_modify": 1, // 是否支持时间间隔修改  0 不可修改 1 支持修改
   "p_support_time_slot": { // 支持测试的时间段  不可修改
     "startTime": "0:0",// 开始时间  
     "stopTime": "0:0"// 结束时间  
