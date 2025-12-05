@@ -10,12 +10,22 @@
 
 
 
-## 微信sdk各模块区分 
+## 微信SDK各模块区分 
 
 veepooBle 蓝牙模块  进行蓝牙设备的扫描，连接，监听，断开等功能。
 veepooFeature 功能模块 各功能接口模块，用于读取数据，操作手环等。
 
-##### 备注：sdk和sdkdemo只能在真机环境下进行调试
+
+
+## 微信SDK使用环境
+
+1.SDK与SDKDemo仅限真机环境下调试
+
+2.SDK仅支持小程序原生+TypeScript项目开发
+
+**注意：**SDK 基于小程序原生开发，支持在原生 + TypeScript 项目中使用。由于 mpvue、uni-app、Taro 等框架会对代码进行二次编译与运行时改写，可能破坏 SDK 原有的模块结构与执行上下文，因此不推荐在此类框架中接入。
+
+
 
 ## **蓝牙扫描接口说明**
 
@@ -461,6 +471,14 @@ veepooFeature.veepooBlePasswordCheckManager();
   1 有血糖功能，在日常数据读取
   3 仅有私人模式，无日常数据、单次测量
 
+  4  有血糖功能，校准方式为【多校准】
+
+  5 有血糖功能，日常数据和手动测量显示成低、中、高风险等级，风险等级由设备(算法)提供，校准方式为【多校准】
+
+  8 有血糖功能，校准方式为【多校准】(同04)，设备端手动测量读取
+
+  9 有血糖功能，日常数据和手动测量显示成低、中、高风险等级，风险等级由设备(算法)提供，校准方式为【多校准】(同05)，设备端手动测量读取
+
 * 血液成分功能
 
   0 无该功能
@@ -852,11 +870,11 @@ content:{
           insomniaScore, // 失眠得分
           insomniaCount, //失眠次数
           sleepCurve, //睡眠曲线
- }
+}
 }
 ```
 
-睡眠曲线：“11111111111111111111111111000000000000000000000000011111111111122222222211111111111114444411111111111111111114444”
+睡眠曲线：“111111111111111111111111111000000000000000000000000011111111111122222222211111111111114444411111111111111111114444”
 
 0深睡，1浅睡，2快速眼动，3失眠，4苏醒
 
@@ -941,8 +959,8 @@ content:{
   let reset = ''
   let g5Series = ''
   //  血糖相关
-  let bloodGlucose = ''
-  //  梅托相关
+  let bloodGlucose = ''  // 注意：血糖功能类型等于 5 与 9  格式  {bloodGlucose：5.43,level:1}   level 风险等级  1 低 2 中 3 高
+   //  梅托相关
   let meiTuo = ''
   //  压力相关
   let pressure = ''
@@ -2758,15 +2776,13 @@ veepooFeature.veepooSendBloodGlucoseMeasurementDataManager(data);
 
 ```js
 {
-
   name:"血糖测量",
   type:22,// type 类型等于22 表示血糖功能
   Progress:100,// 进度 0-100
   deviceAck:"",// 设备状态
   content:{
-    bloodGlucose:"",// 血糖值
+    bloodGlucose:"",// 血糖值   血糖功能类型等于 5 与 9   格式：{bloodGlucose：4.32,level:1} // level 1 低 2 中 3 高 
   }
-
 }
 
 ```
@@ -5163,4 +5179,205 @@ veepooFeature.veepooSendSetupB3AutoTestFeatureDataManager({
  	"control": 1, // 1 设置 2 读取
 }
 ```
+
+
+
+### HRV相关接口
+
+注意：传入的参数通过日常数据获取，rr50字段，需根据 “功能类型” 返回  HRV数据类型字段值，如果是全天，那么那么截取全天数据，非全天，截取7小时数据
+
+#### 获取洛伦兹散点图数据
+
+##### 前提
+
+设备支持HRV，且已开启HRV付费功能
+
+##### 接口
+
+```
+veepooGetLorentzScatterPlotData
+```
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+let HrvData = [];// 日常数据返回的rr50
+let drawArr = veepooFeature.veepooGetLorentzScatterPlotData(HrvData);
+```
+
+##### 回调
+
+```
+// 开启HRV付费权限
+{
+    type: 52,
+    name: "洛伦兹散点图",
+    content: [] 
+}
+
+// 未开启HRV付费权限
+{
+    type: 52,
+    message: "没有此功能"
+}
+```
+
+
+
+
+
+#### 获取洛伦兹星级
+
+##### 前提
+
+设备支持HRV，且已开启HRV付费功能
+
+##### 接口
+
+```
+veepooGetLorentzScatterPlotStarIndex
+```
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+let HrvData = [];// 日常数据返回的rr50
+let starIndexs = veepooFeature.veepooGetLorentzScatterPlotStarIndex(HrvData);
+```
+
+##### 回调
+
+```
+// 开启HRV付费权限
+{
+    type: 52,
+    name: "洛伦兹星级",
+    content:[{
+      type: 1, // 心率变化
+      starIndex: starObj.secondIndex, // 星级
+      code: value.second_line //文本代码
+    },
+    {
+      type: 2, // 心率突变
+      starIndex: starObj.threeIndex,
+      code: value.third_line
+    },
+    {
+      type: 3, // 神经状态
+      starIndex: starObj.fourIndex,
+      code: value.fouth_line
+    },
+    {
+      type: 4, // 心律变化
+      starIndex: starObj.fiveIndex,
+      code: value.fifth_line
+    },
+  ];
+}
+
+// 未开启HRV付费权限
+{
+    type: 52,
+    message: "没有此功能"
+}
+```
+
+
+
+#### 获取洛伦兹相似度
+
+注意：该功能只在内部使用
+
+##### 前提
+
+设备支持HRV，且已开启HRV付费功能
+
+##### 接口
+
+```
+VeepooGetLorentzScatterPlotSimilarity
+```
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+let HrvData = [];// 日常数据返回的rr50
+let similarity = veepooFeature.VeepooGetLorentzScatterPlotSimilarity(HrvData);
+```
+
+##### 回调
+
+```
+// 开启HRV付费权限
+{
+    type: 52,
+    name: "洛伦兹相似度",
+    content: {
+      luoentz_index: [],
+      luoentz_pro: []
+    }
+}
+
+// 未开启HRV付费权限
+{
+    type: 52,
+    message: "没有此功能"
+}
+```
+
+
+
+#### 获取心脏健康指数
+
+##### 前提
+
+设备支持HRV，且已开启HRV付费功能
+
+##### 接口
+
+```
+VeepooGetHrvHeartHealthScore
+```
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+let HrvData = [];// 日常数据返回的rr50
+let score = veepooFeature.VeepooGetHrvHeartHealthScore(HrvData);
+```
+
+##### 回调
+
+```
+// 开启HRV付费权限
+{
+    type: 52,
+    name: "HRV心脏健康指数",
+    content: {
+      code: 88,// 心脏健康值 0-100
+     }
+}
+
+// 未开启HRV付费权限
+{
+    type: 52,
+    message: "没有此功能"
+}
+```
+
+
+
+
+
+
+
+
 
