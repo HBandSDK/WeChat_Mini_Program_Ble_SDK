@@ -94,7 +94,7 @@ Page({
     let self = this;
     let data = {
       deviceControl: 'setup',
-      switch: self.data.deviceSwitch,
+      switch: self.data.deviceSwitch ? 'start' : 'stop',
       uricAcidVal: self.data.value1,
       cholesterol: self.data.value2,
       triacylglycerol: self.data.value3,

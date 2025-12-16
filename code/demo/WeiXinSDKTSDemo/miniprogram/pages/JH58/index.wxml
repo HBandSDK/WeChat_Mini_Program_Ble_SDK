@@ -1,0 +1,7 @@
+<view class="box">
+
+  <view class="btn"><button catch:tap="readTestModeSwitchState">读取测量模式开关状态</button></view>
+  <view class="btn"><button catch:tap="setupTestModeSwitchState">设置测量模式开关状态</button></view>
+  <view class="btn"><button catch:tap="readOrigData">读取原始数据</button></view>
+  <view>读取进度：{{progress}}</view>
+</view>
