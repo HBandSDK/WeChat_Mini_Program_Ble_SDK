@@ -109,7 +109,6 @@ Page({
               veepooFeature.veepooBlePasswordCheckManager();
             }, 500);
 
-
             let times = setInterval(() => {
               // 设备芯片
               // 当前设备芯片获取状态  （通过调用蓝牙密码核准设置， 获取）

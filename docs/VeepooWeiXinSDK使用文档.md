@@ -23,7 +23,7 @@ veepooFeature 功能模块 各功能接口模块，用于读取数据，操作�
 
 2.SDK仅支持小程序原生+TypeScript项目开发
 
-**注意：**SDK 基于小程序原生开发，支持在原生 + TypeScript 项目中使用。由于 mpvue、uni-app、Taro 等框架会对代码进行二次编译与运行时改写，可能破坏 SDK 原有的模块结构与执行上下文，因此不推荐在此类框架中接入。
+**注意：**SDK 基于小程序原生开发，并使用 Webpack 以 CommonJS2 方式打包输出。在原生 + TypeScript 项目中可稳定使用。但由于 mpvue、uni-app、Taro 等框架会对代码进行二次编译与运行时改写，可能破坏 SDK 原有的模块结构与执行上下文，因此不推荐在此类框架中接入使用。
 
 
 
@@ -5371,6 +5371,157 @@ let score = veepooFeature.VeepooGetHrvHeartHealthScore(HrvData);
     type: 52,
     message: "没有此功能"
 }
+```
+
+
+
+
+
+### JH58定制项目动态血压相关接口
+
+
+
+#### 读取测量模式开关状态
+
+##### 前提
+
+设备已连接，且设备数据JH58定制项目
+
+##### 接口
+
+```
+veepooReadTestModeSwitchStateDataManager
+```
+
+##### 参数
+
+无
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+veepooFeature.veepooReadTestModeSwitchStateDataManager();
+```
+
+##### 回调
+
+```javascript
+{
+    name: "PPG测量模式开关状态",
+    type: 54,
+    control: 1,//  1  读取开关状态  2 设置开关状态
+    content: {
+      state: 2,// 1 全关  2 开启模式1  3 开启模式2
+   }
+ }
+
+```
+
+
+
+#### 设置测量模式开关状态
+
+##### 前提
+
+设备已连接，且设备数据JH58定制项目
+
+##### 接口
+
+```
+veepooSetupTestModeOneSwitchStateDataManager
+```
+
+##### 参数
+
+| 参数  | 类型   | 备注                              |
+| ----- | ------ | --------------------------------- |
+| state | number | 1 全关  2 开启模式1  2  开启模式2 |
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+    let data = {
+      state: 2,
+    }
+veepooFeature.veepooSetupTestModeOneSwitchStateDataManager(data);
+```
+
+##### 回调
+
+```javascript
+{
+    name: "PPG测量模式开关状态",
+    type: 54,
+    control: 1,//  1  读取开关状态  2 设置开关状态
+    content: {
+      state: 2,// 1 全关  2 开启模式1  3 开启模式2
+   }
+ }
+
+```
+
+
+
+#### 读取PPG原始数据
+
+##### 前提
+
+设备已连接，且设备数据JH58定制项目
+
+##### 接口
+
+```
+veepooReadTestModeOrigDataManager
+```
+
+##### 参数
+
+| 参数      | 类型   | 备注                                               |
+| --------- | ------ | -------------------------------------------------- |
+| mode      | number | 1 读取开启模式1  2  读取开启模式2                  |
+| timeStamp | number | 时间戳，设备将按照该时间戳，上报该时间戳往后的数据 |
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+    let data = {
+      mode: 1,
+      timeStamp: timestampInSeconds
+    }
+veepooFeature.veepooReadTestModeOrigDataManager(data);
+```
+
+##### 回调
+
+```javascript
+{
+    name: "PPG读取原始数据",
+    type: 55,
+    control: 2,//  2 读取
+    mode: 1, // 1 模式1   2 模式2
+    progress: 100, // 实现进度
+    content:[
+        {
+            array:[
+                {
+                    acceleration：{
+                    	x:[],// x轴
+            			y:[],// y轴
+            			z:[],// z轴
+                 	}，// 加速度
+               		ppgData:[],// 每秒的ppg原始数据
+                }
+            ],// 当前组的数据   模式1 一天最多96组，15分钟一组
+            crc:38386,// crc 
+            timeStamp:1765814400,// 当前数据时间
+        }
+    ]
+}
+
 ```
 
 

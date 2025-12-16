@@ -56,7 +56,8 @@
     "pages/skinColorSetting/index",
     "pages/microCheck/index",
     "pages/sos/index",
-    "pages/b3AutoTestFeature/b3AutoTestFeature"
+    "pages/b3AutoTestFeature/b3AutoTestFeature",
+    "pages/JH58/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

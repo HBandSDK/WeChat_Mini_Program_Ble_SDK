@@ -223,6 +223,10 @@ Component({
         name: 'B3自动测量',
         path: '/pages/b3AutoTestFeature/b3AutoTestFeature'
       },
+      {
+        name: 'JH58',
+        path: '/pages/JH58/index'
+      },
     ],
     valData: {
       heartRate: 'start',
@@ -408,7 +412,10 @@ Component({
     },
     // 获取背景信息
     getBackgroundInfo() {
-      veepooFeature.veepooSendReadCustomBackgroundDailManager()
+      let data = {
+        type: 1
+      }
+      veepooFeature.veepooSendReadCustomBackgroundDailManager(data);
     },
 
     // 断开连接
@@ -536,7 +543,7 @@ Component({
       this.ElectricQuantityManager();
       console.log("读取步数")
       this.StepCalorieDistanceManager();
-      this.getBackgroundInfo()
+      // this.getBackgroundInfo()
       let bleDate = wx.getStorageSync('bleDate')
       console.log("bleDate==>", bleDate)
       wx.setBLEMTU({

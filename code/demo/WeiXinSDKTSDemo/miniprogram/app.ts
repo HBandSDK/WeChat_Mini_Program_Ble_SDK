@@ -1,7 +1,6 @@
 import { veepooJLBle } from "./jieli_sdk/bleInit"
 const vpJLBle = new veepooJLBle();
 
-
 App<IAppOption>({
   globalData: {},
   onLaunch() {
@@ -9,6 +8,4 @@ App<IAppOption>({
     vpJLBle.init();
   },
 })
-
-
 
