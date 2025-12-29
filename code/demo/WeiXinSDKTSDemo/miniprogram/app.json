@@ -57,7 +57,8 @@
     "pages/microCheck/index",
     "pages/sos/index",
     "pages/b3AutoTestFeature/b3AutoTestFeature",
-    "pages/JH58/index"
+    "pages/JH58/index",
+    "pages/ZT163ScreenKillFunction/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

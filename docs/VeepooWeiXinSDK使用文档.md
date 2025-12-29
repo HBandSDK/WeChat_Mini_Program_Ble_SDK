@@ -911,7 +911,7 @@ veepooSendReadDailyDataManager
 import { veepooFeature } from '../../miniprogram_dist/index'
 let data = {
    day:0，
-   packages:1,
+   package:1,
 }
 veepooFeature.veepooSendReadDailyDataManager(data);
 ```
@@ -3497,6 +3497,7 @@ veepooSendAutoTestSwitchDataManager
 | bloodGlucose    | string | 血糖开关     |
 | bloodComponents | string | 血液成分开关 |
 | fallWarning | string | 跌倒提醒开关 |
+| lowOxygen | string | 低氧唤醒 |
 
 ##### 使用示例
 
@@ -3506,10 +3507,7 @@ let data = {
   heartRate,// start 开启  stop 关闭  开启心率开关
 }
 
-
 veepooFeature.veepooSendAutoTestSwitchDataManager(data)
-
-
 ```
 
 ##### 回调
@@ -5525,6 +5523,48 @@ veepooFeature.veepooReadTestModeOrigDataManager(data);
 ```
 
 
+
+#### ZT163常灭屏功能
+
+##### 前提
+
+设备已连接，且支持常灭屏功能
+
+##### 接口
+
+```
+veepooSetupZT163ScreenKillFunctionManager
+```
+
+##### 参数
+
+| 参数    | 类型   | 备注                                      |
+| ------- | ------ | ----------------------------------------- |
+| control | number | 1 开启常灭屏  2 关闭常灭屏   3 读取常灭屏 |
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+let data = {
+     control: 1,
+   }
+veepooFeature.veepooSetupZT163ScreenKillFunctionManager(data);
+```
+
+##### 回调
+
+```javascript
+{
+    name: "设备常灭屏",
+    type: 56,
+    control: 1,//  1 开启  2 关闭  3 读取
+    content: {
+      state: 1,//  control = 1 || control = 2 时，state = 1 设置成功 state = 2 设置失败     control = 3 时，state = 1 无此功能 state = 1 当前为亮屏状态 2 当前为灭屏状态
+   }
+ }
+
+```
 
 
 

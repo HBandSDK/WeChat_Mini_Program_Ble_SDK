@@ -24,11 +24,25 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/xdt/index",
-          "pathName": "pages/xdt/index",
+          "name": "pages/ecgTest/index",
+          "pathName": "pages/ecgTest/index",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/JH58/index",
+          "pathName": "pages/JH58/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/xdt/index",
+          "pathName": "pages/xdt/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         }
       ]
     }

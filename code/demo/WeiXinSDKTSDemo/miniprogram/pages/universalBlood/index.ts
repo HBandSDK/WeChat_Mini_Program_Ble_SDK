@@ -50,12 +50,14 @@ Page({
     }
     veepooFeature.veepooSendReadUniversalBloodPressureDataManager(data);
   },
+
   stopTest() {
     let data = {
       switch: 'stop'
     }
     veepooFeature.veepooSendReadUniversalBloodPressureDataManager(data);
   },
+
   startBlood() {
     let self = this;
     let data = {
@@ -66,6 +68,7 @@ Page({
     console.log('data==>', data)
     veepooFeature.veepooSendBloodPressurePrivateDataManager(data)
   },
+
   stopBlood() {
     let self = this;
     let data = {
@@ -75,7 +78,6 @@ Page({
     }
     veepooFeature.veepooSendBloodPressurePrivateDataManager(data)
   },
-
 
   readBlood() {
     let data = {
