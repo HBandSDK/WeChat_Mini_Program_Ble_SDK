@@ -107,6 +107,9 @@ Page({
     let data = {
       lowOxygen: e.detail.value ? 'start' : 'stop'
     }
+    // let data = {
+    //   lowOxygen:'start'
+    // }
     veepooFeature.veepooSendAutoTestSwitchDataManager(data)
   },
   // 监听订阅 notifyMonitorValueChange

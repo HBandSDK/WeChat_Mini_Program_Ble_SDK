@@ -227,6 +227,10 @@ Component({
         name: 'JH58',
         path: '/pages/JH58/index'
       },
+      {
+        name: 'ZT163常灭屏',
+        path: '/pages/ZT163ScreenKillFunction/index'
+      },
     ],
     valData: {
       heartRate: 'start',

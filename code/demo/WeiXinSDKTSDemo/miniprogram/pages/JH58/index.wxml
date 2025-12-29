@@ -1,7 +1,40 @@
 <view class="box">
 
-  <view class="btn"><button catch:tap="readTestModeSwitchState">读取测量模式开关状态</button></view>
-  <view class="btn"><button catch:tap="setupTestModeSwitchState">设置测量模式开关状态</button></view>
-  <view class="btn"><button catch:tap="readOrigData">读取原始数据</button></view>
+
+  <view class="box-mode-state">
+    <view class="mode-state-item" catch:tap="readTestModeSwitchState">读取模式开关</view>
+    <view class="mode-state-item" catch:tap="setupModeSwitchStop">设置模式全关</view>
+  </view>
+  <view class="box-mode-state">
+    <view class="mode-state-item" catch:tap="setupTestModeSwitchState1">设置模式1</view>
+    <view class="mode-state-item" catch:tap="setupTestModeSwitchState2">设置模式2</view>
+  </view>
+  <view class="box-mode-state">
+    <view class="mode-state-item" catch:tap="readOrigData1">读取模式1数据</view>
+    <view class="mode-state-item" catch:tap="readOrigData2">读取模式2数据</view>
+  </view>
+
+  <view class="box-mode-state">
+    <view class="section">
+      <picker mode="date" value="{{date}}" end="{{endDate}}" bindchange="bindDateChange">
+        <view class="picker">
+          日期选择: {{date}}
+        </view>
+      </picker>
+    </view>
+    <view class="section">
+      <picker mode="time" value="{{time}}" bindchange="bindTimeChange">
+        <view class="picker">
+          时间选择: {{time}}
+        </view>
+      </picker>
+    </view>
+
+  </view>
+
+
+  <view class="btn"><button catch:tap="openLog">分享日志</button></view>
+
+  <view wx:if="{{modet}}">当前模式：{{modeType}}</view>
   <view>读取进度：{{progress}}</view>
 </view>

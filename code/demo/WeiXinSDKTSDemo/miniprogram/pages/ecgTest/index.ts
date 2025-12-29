@@ -27,8 +27,13 @@ Page({
    */
   onReady() {
 
-  },
+    let data = veepooFeature.veepooGetDiseaseTextManager({
+      heartRate: 77,
+      diseaseResult: [0, 0, 0, 0, 0, 0, 0, 0]
+    });
 
+    console.log('data==>',data);
+  },
   /**
    * 生命周期函数--监听页面显示
    */
