@@ -1,0 +1,64 @@
+<view>
+  <view class="box-btn">
+    <button catch:tap="read4GService">读取4G服务信息</button>
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GService">设置4G服务信息</button>
+  </view>
+
+  <view class="section">
+    <view class="section__title">4G开关：</view>
+    <switch checked="{{switchStatus}}" bindchange="bindSwitchChange" />
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GSwitch">设置4G服务开关</button>
+  </view>
+
+  <view class="section">
+    <view class="section__title">4G上传开关：</view>
+    <switch checked="{{dataUploadSwitch}}" bindchange="bindUploadSwitchChange" />
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GUploadSwitch">设置4G服务上传开关</button>
+  </view>
+
+  <view class="section">
+    <view class="section__title">4G账号是否有效：</view>
+    <switch checked="{{accountStatus}}" bindchange="bindAccountStatusChange" />
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GAccountStatus">设置4G服务账号是否有效</button>
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GServiceInterval">设置4G服务上传间隔</button>
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GTimeStamp">设置4G服务时间戳</button>
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GUserName">设置4G用户名称</button>
+  </view>
+
+
+  <view class="box-btn">
+    <button catch:tap="setup4GIpAddress">设置4G服务IP</button>
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GPort">设置4G服务端口</button>
+  </view>
+
+  <view class="box-btn">
+    <button catch:tap="setup4GPassword">设置4G服务密码</button>
+  </view>
+
+</view>
+
+

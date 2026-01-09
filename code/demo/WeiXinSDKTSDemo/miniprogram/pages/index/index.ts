@@ -231,6 +231,10 @@ Component({
         name: 'ZT163常灭屏',
         path: '/pages/ZT163ScreenKillFunction/index'
       },
+      {
+        name: '4G服务',
+        path: '/pages/4GService/Index'
+      },
     ],
     valData: {
       heartRate: 'start',

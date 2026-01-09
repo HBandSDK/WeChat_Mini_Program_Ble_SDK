@@ -5568,7 +5568,111 @@ veepooFeature.veepooSetupZT163ScreenKillFunctionManager(data);
 
 
 
+#### 读取4G设备Service信息
 
+##### 前提
+
+设备已连接，且支持4G
+
+##### 接口
+
+```
+veepooRead4GServiceDataManager
+```
+
+##### 参数
+
+无
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+veepooFeature.veepooRead4GServiceDataManager();
+```
+
+##### 回调
+
+```javascript
+{
+    name: "4G服务信息",
+    type: 57, 
+    control: 2, // 1 设置 2 读取 3 信息核准成功 4 设备端变更主动上报 5 设备繁忙
+    ack:1,//  0 失败 1 成功
+    content: {
+        ipAddress: "vphband.com", // IP地址
+        port: 34421, // 端口
+        userName: "13219170059",// 用户名 
+        password: "PdbGqvN2BhOpYDtiCxiLNA==",// 密码 
+        lastTimeStamp: 1767172170, // APP或设备最后一次同步服务器的时间戳，秒级
+        switch: 0, // 4G开关 0 关闭 1 开启
+        dataUploadSwitch: 0, // 数据上传开关 0 关闭 1 开启  4G开关为关，此字段应无效
+        uploadInterval: 10, // 4G上报服务器的时间间隔，分钟级别
+        restoreTimeStamp: 1767606251, // 设备最后一次恢复时间戳，作用是APP或服务器触发从0开始读取
+        accountStatus: 1, // 0为无效，1为有效
+    }
+}
+```
+
+
+
+#### 设置4G设备Service信息
+
+##### 前提
+
+设备已连接，且支持4G
+
+##### 接口
+
+```
+veepooFeature.veepooSetup4GServiceInfoManager();
+```
+
+##### 参数
+
+| 参数             | 类型   | 备注                        |
+| ---------------- | ------ | --------------------------- |
+| ipAddress        | string | IP地址                      |
+| port             | number | 端口                        |
+| userName         | string | 用户名                      |
+| password         | string | 密码                        |
+| switch           | number | 4G开关 0 关闭 1 开启        |
+| dataUploadSwitch | number | 数据上传开关 0 关闭 1 开启  |
+| uploadInterval   | number | 4G上传服务器间隔 分钟级别   |
+| accountStatus    | number | 账号是否有效  0 无效 1 有效 |
+
+所有参数可选，最低选择1个参数，最多全部参数，只能传输特定参数类型
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+// 参数可选，多参数
+veepooFeature.veepooSetup4GServiceInfoManager({
+  ipAddress: "vphband.com", // ip地址
+  port: 34421, // 端口 
+  userName: "13219170059", // 用户名
+  password: "PdbGqvN2BhOpYDtiCxiLNA==", // 密码
+});
+
+// 参数可选，单参数
+veepooFeature.veepooSetup4GServiceInfoManager({
+    switch: 1, // 开关  0 关闭 1 开启
+});
+```
+
+##### 回调
+
+```
+{
+    name: "4G服务信息",
+    type: 57, 
+    control: 1, // 1 设置 2 读取 3 信息核准成功 4 设备端变更主动上报 5 设备繁忙
+    ack:1,//  0 失败 1 成功
+}
+```
 
 
 

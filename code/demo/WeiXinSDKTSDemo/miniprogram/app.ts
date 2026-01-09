@@ -8,6 +8,3 @@ App<IAppOption>({
     vpJLBle.init();
   },
 })
-
-
-
