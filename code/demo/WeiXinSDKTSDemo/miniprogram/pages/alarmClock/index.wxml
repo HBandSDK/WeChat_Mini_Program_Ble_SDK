@@ -16,6 +16,10 @@
       </picker>
     </view>
     <view class="ItemInput">
+      <view>闹钟标签：</view>
+      <view><input style="background-color: aliceblue; padding: 15rpx;" bindinput="getLabel" type="text" placeholder="填写闹钟标签" /></view>
+    </view>
+    <view class="ItemInput">
       <view>是否开启：</view>
       <switch checked="{{alarmSwitch}}" bindchange="getalarmSwitch" />
     </view>

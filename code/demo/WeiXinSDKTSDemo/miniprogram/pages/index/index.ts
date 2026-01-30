@@ -235,6 +235,10 @@ Component({
         name: '4G服务',
         path: '/pages/4GService/Index'
       },
+      {
+        name: '压力测量',
+        path: '/pages/pressureTest/index'
+      },
     ],
     valData: {
       heartRate: 'start',

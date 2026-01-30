@@ -59,7 +59,8 @@
     "pages/b3AutoTestFeature/b3AutoTestFeature",
     "pages/JH58/index",
     "pages/ZT163ScreenKillFunction/index",
-    "pages/4GService/Index"
+    "pages/4GService/Index",
+    "pages/pressureTest/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

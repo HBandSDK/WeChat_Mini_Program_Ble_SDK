@@ -5676,3 +5676,49 @@ veepooFeature.veepooSetup4GServiceInfoManager({
 
 
 
+#### 压力测量
+
+##### 前提
+
+设备已连接，且支持压力测量
+
+##### 接口
+
+```
+veepooFeature.veepooSendPressureTestManager();
+```
+
+##### 参数
+
+| 参数   | 类型    | 备注                              |
+| ------ | ------- | --------------------------------- |
+| switch | boolean | 开关 true 开启测量 false 关闭测量 |
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+let data = {
+    switch:true
+};
+veepooFeature.veepooSendPressureTestManager(data)
+```
+
+##### 回调
+
+```typescript
+{
+      name: "压力测量",
+      type: 58,
+      control: 1,// 0 不支持此功能 1 开启 2 关闭
+      ack: 0,// 0 可用 1 设备正在测量压力 2 设备处于低电 3 设备正在测量其他数据 4 设备佩戴检测未通过
+      progress: 100,// 进度 0-100
+      content: {
+        pressure: 23 // 压力值 
+      }
+}
+```
+
+
+

@@ -1,0 +1,9 @@
+<view>
+
+<button style="margin-top: 20px;" catch:tap="pressureTestStart">开始测量</button>
+<button style="margin-top: 20px;" catch:tap="pressureTestStop">结束测量</button>
+
+<view style="padding: 20px;">
+<view>当前压力：{{pressure}}</view>
+</view>
+</view>
