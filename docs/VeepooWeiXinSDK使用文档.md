@@ -1659,7 +1659,7 @@ veepooFeature.veepooSendReadContactPersonDataManager()
 
 
 
-#### 设置联系人
+#### 设置或调整联系人
 
 联系人设置最多支持10人，sos设置最多支持5人
 
@@ -1676,23 +1676,40 @@ veepooSendSettingContactPersonDataManager
 
 ##### 参数
 
-| 参数          | 类型   | 备注         |
-| ------------- | ------ | ------------ |
-| contactNumber | number | 联系人id     |
-| name          | string | 联系人名称   |
-| phone         | string | 联系人手机号 |
+| 参数          | 类型    | 备注           |
+| ------------- | ------- | -------------- |
+| isEdit        | boolean | 当前是否为编辑 |
+| contactNumber | number  | 联系人id       |
+| name          | string  | 联系人名称     |
+| phone         | string  | 联系人手机号   |
+| sos           | boolean | sos 状态       |
 
 ##### 使用
 
 ```js
 import {veepooFeature } from '../../miniprogram_dist/index'
 
+// 设置联系人
 let data = {
-  contactNumber: readList.length,// 联系人id
+  isEdit:false,
+  contactNumber: 4,// 联系人id
   name: "测试",// 联系人名称
   phone: '15289356892',// 手机号 这个是虚拟手机号
+  sos:false,
 }
 veepooFeature.veepooSendSettingContactPersonDataManager(data)
+
+
+// 编辑联系人
+let data = {
+  isEdit:true,
+  contactNumber: 3,// 联系人id，需要-1，如id等于4的联系人，需要编辑，则传入3
+  name: "测试",// 联系人名称
+  phone: '15289356892',// 手机号 这个是虚拟手机号
+  sos:false,
+}
+veepooFeature.veepooSendSettingContactPersonDataManager(data)
+
 ```
 
 ##### 回调

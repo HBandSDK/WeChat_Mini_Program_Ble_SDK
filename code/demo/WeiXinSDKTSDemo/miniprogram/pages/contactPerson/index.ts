@@ -12,7 +12,8 @@ Page({
     name: '',
     delId: '',
     fromId: '',
-    toId: ''
+    toId: '',
+    phoneId: 0,
   },
 
   /**
@@ -44,8 +45,8 @@ Page({
     console.log("readList=>", readList.length + 1)
 
     // 注意：添加联系人，已有的联系人id 假设是1  那么在添加一个联系人的contactNumber 应该传入2
-
     let data = {
+      isEdit:false,
       contactNumber: readList.length,
       name: this.data.name,
       phone: this.data.phone,
@@ -65,6 +66,35 @@ Page({
       veepooFeature.veepooSendReadContactPersonDataManager();
     }, 1000);
   },
+
+  editContactPerson(){
+    let readList = this.data.readList;
+    console.log("readList=>", readList.length + 1)
+
+    // 注意：编辑联系人，因SDK内部做了自增，所以填入id需要减1，如id 是 2 则 填 1
+    let data = {
+      isEdit:true,
+      contactNumber: Number(this.data.phoneId) - 1,
+      name: this.data.name,
+      phone: this.data.phone,
+      sos: this.data.sos,// 设置为紧急联系人 
+    }
+    console.log("data=>", data)
+    if (!data.phone && !data.name) {
+      wx.showToast({
+        title: '填写手机号或名称',
+        icon: 'none'
+      })
+      return
+    }
+    veepooFeature.veepooSendSettingContactPersonDataManager(data)
+
+    setTimeout(() => {
+      veepooFeature.veepooSendReadContactPersonDataManager();
+    }, 1000);
+  },
+
+
   deleteId(e: any) {
     let delId = e.detail.value;
     this.setData({
@@ -125,6 +155,14 @@ Page({
       phone
     })
   },
+
+  getPhoneId(e: any) {
+    let phoneId = e.detail.value;
+    this.setData({
+      phoneId
+    })
+  },
+
   getName(e: any) {
     let name = e.detail.value;
     this.setData({
@@ -136,6 +174,13 @@ Page({
     let self = this;
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
       console.log(" 读取联系人 监听蓝牙回调=>", e);
+
+      if(!e){
+
+        return
+      }
+
+
       if (e.name == '读取联系人') {
         self.setData({
           readList: e.content
