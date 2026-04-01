@@ -1,9 +1,12 @@
 <view>
 
-  <button style="margin-top: 20px;" catch:tap="heartRateStart">开始测量</button>
-  <button style="margin-top: 20px;" catch:tap="heartRateStop">结束测量</button>
+  <button style="margin-top: 20px;" catch:tap="heartRateStart" disabled="{{isMeasuring}}">开始测量</button>
+  <button style="margin-top: 20px;" catch:tap="heartRateStop" disabled="{{!isMeasuring}}">结束测量</button>
 
   <view style="padding: 20px;">
-  <view>当前心率：{{heartRate}}</view>
+    <view>当前心率：{{heartRate}} bpm</view>
+    <view wx:if="{{statusMsg}}" style="color: #07c160; margin-top: 10px;">{{statusMsg}}</view>
+    <view wx:if="{{errorMsg}}" style="color: #fa5151; margin-top: 10px;">{{errorMsg}}</view>
+    <view wx:if="{{isMeasuring}}" style="color: #10aeff; margin-top: 10px;">正在测量中...</view>
   </view>
 </view>

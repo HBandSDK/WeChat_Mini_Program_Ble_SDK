@@ -3,6 +3,8 @@ import { CommandBase, Connection, Device, DeviceInfo, OnRcspCallback, OnSendData
 import { BleScanMessage, BluetoothDevice, ScanDevice } from "../rcsp-protocol/rcsp-util"
 import { RcspOperateWrapper, OPWatchDial, OPWatch, OPSystemInfo, OPLargerFileTrans, OPFile, OPDirectoryBrowse, OPHeadSet, OPLargerFileGet } from "../../jl_lib/jl-rcsp-op/jl_op_watch_1.1.0"
 import { ab2hex } from "../../utils/log";
+import { veepooBle, veepooFeature } from '../../../miniprogram_dist/index'
+import { ConnectImpl } from '../bluetooth'
 export var isAuth = true
 export interface RCSPOption {
   sendData: (deviceId: string, data: Uint8Array) => boolean
@@ -51,6 +53,7 @@ export namespace RCSPWrapperBluetooth {
     /** 连接断开*/
     onConnectDisconnect?: (device: BluetoothDevice) => void
   }
+
   export interface IBleConnect {
     /*蓝牙适配器是否可用*/
     isBluetoothAdapterAvailable(): boolean
@@ -87,7 +90,9 @@ export namespace RCSP {
     }
   }
 }
-class RcspWrapperManager {
+
+
+export class RcspWrapperManager {
   private _eventCallback: Array<RCSP.RCSPWrapperEventCallback> = new Array()
   private _RcspOpImplMap = new Map<string, RcspOpImpl>()
   private _RcspOperateWrapperMap = new Map<string, RcspOperateWrapper>()
@@ -102,6 +107,7 @@ class RcspWrapperManager {
       this._onRcspInit(device, isInit)
     }, onRcspResponse: (_device, _command) => {
     }, onConnectStateChange: (_device, _status) => {
+
     }, onMandatoryUpgrade: (device) => {
       const deviceId = device?.deviceId
       let blueToothDevice: BluetoothDevice | undefined
@@ -132,10 +138,13 @@ class RcspWrapperManager {
     }, onRcspError: (_device, _error, _message) => {
     }
   }
-  private _bleConnectCallback: RCSPWrapperBluetooth.IBleConnectCallback = {
+
+  // private
+  _bleConnectCallback: RCSPWrapperBluetooth.IBleConnectCallback = {
     /** 连接成功*/
     onConnectSuccess: (device: BluetoothDevice) => {
-      console.log("连接成功");
+      wx.setStorageSync('JLBleConnected', true)
+
       this._onRCSPBluetoothEvent({
         type: "onConnection",
         onConnectionEvent: {
@@ -143,6 +152,8 @@ class RcspWrapperManager {
           status: 2
         }
       })
+
+
     },
     /** 连接失败*/
     onConnectFailed: (device: BluetoothDevice) => {
@@ -174,6 +185,29 @@ class RcspWrapperManager {
   }
   constructor() {
 
+  }
+  JieLiDeviceVerify(device: any, callback?: any) {
+    this._onRCSPBluetoothEvent({
+      type: "onConnection",
+      onConnectionEvent: {
+        device: device,
+        status: 2
+      }
+    }, (res: any) => {
+      callback(res);
+    })
+  }
+  /* 
+  连接断开清除数据
+  */
+  JLOnConnectDisconnect(device: BluetoothDevice) {
+    this._onRCSPBluetoothEvent({
+      type: "onConnection",
+      onConnectionEvent: {
+        device: device,
+        status: 0
+      }
+    })
   }
   init(option: RCSPOption) {
     this._option = option
@@ -287,10 +321,9 @@ class RcspWrapperManager {
     const event = new RCSP.RCSPWrapperEvent()
     event.type = 'onSwitchUseDevice'
     event.onSwitchUseDeviceEvent = { device }
-    wx.setStorageSync("vp_connected_verify", true)
     this._notifyEvent(event)
   }
-  private _onRCSPBluetoothEvent(event: { type: string, onConnectionEvent: { device: BluetoothDevice, status: number } }) {
+  private _onRCSPBluetoothEvent(event: { type: string, onConnectionEvent: { device: BluetoothDevice, status: number }, }, callback?: any) {
     if (event.type === 'onConnection' && event.onConnectionEvent) {
       const device = event.onConnectionEvent.device
       if (event.onConnectionEvent.status == 2) {//已连接
@@ -303,13 +336,26 @@ class RcspWrapperManager {
             onAuthSuccess: () => {
               this._AuthMap.delete(device.deviceId)
               console.log(" onAuthSuccess: " + device.name);
+              console.log("认证成功=====================================================");
+              let msg = {
+                authStatus: true,
+                device: device.deviceId
+              }
               this._onDeviceConnected(device)
+              callback(msg)
+
             },
             onAuthFailed: () => {
               this._AuthMap.delete(device.deviceId)
               console.log("onAuthFailed: ");
               //认证失败也走RCSP命令,为了处理频繁断连的情况
+              let msg = {
+                authStatus: false,
+                device: device.deviceId
+              }
               this._onDeviceConnected(device)
+              callback(msg)
+
             },
           }
           this._AuthMap.set(device.deviceId, auth)
@@ -323,8 +369,12 @@ class RcspWrapperManager {
     }
   }
 
+  // arkts 实际上就是ts的一个删减版，
+
   private _onDeviceConnected(device: BluetoothDevice) {//蓝牙已连接,已认证
     let rcspOpImpl = this._RcspOpImplMap.get(device.deviceId)
+    console.log("rcspOpImpl蓝牙认证======>", rcspOpImpl)
+    console.log("device蓝牙认证======>", device)
     if (rcspOpImpl == undefined) {
       rcspOpImpl = new RcspOpImpl()
       this._RcspOpImplMap.set(device.deviceId, rcspOpImpl)
@@ -333,6 +383,7 @@ class RcspWrapperManager {
       rcspOpImpl.addOnRcspCallback(this._OnRcspCallback)
       rcspOpImpl.setOnSendDataCallback(this._OnSendDataCallback)
     }
+    console.log('new Device(device.deviceId, device.name), Connection.CONNECTION_CONNECTED=>', new Device(device.deviceId, device.name), Connection.CONNECTION_CONNECTED)
     rcspOpImpl.transmitDeviceStatus(new Device(device.deviceId, device.name), Connection.CONNECTION_CONNECTED)
     const operateWrapper = new RcspOperateWrapper(rcspOpImpl)
     this._bluetoothDeviceMap.set(device.deviceId, device)
@@ -406,11 +457,14 @@ class RcspWrapperManager {
       } else {//没有设备信息
         this._onRcspInitEventHandle(blueToothDevice, false)
         // this._rcspBluetooth.disconnectDevice(blueToothDevice)
+        console.log("没有设备信息=>", deviceInfo)
         this._bleConnect?.disconnect(blueToothDevice)
+
       }
     } else if (deviceId && !isInit) {//未初始化成功
       this._onRcspInitEventHandle(blueToothDevice, false)
       // this._rcspBluetooth.disconnectDevice(blueToothDevice)
+      console.log('未初始化成功deviceId=>', deviceId, isInit)
       this._bleConnect?.disconnect(blueToothDevice)
     }
   }

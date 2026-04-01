@@ -34,7 +34,6 @@ function logv(msg: string) {
         }
     }
 }
-
 function logd(msg: string) {
     console.debug(msg);
     if (logGrade <= 2) {
@@ -43,7 +42,6 @@ function logd(msg: string) {
         }
     }
 }
-
 function logi(msg: string) {
     console.info(msg);
     if (logGrade <= 3) {
@@ -52,7 +50,6 @@ function logi(msg: string) {
         }
     }
 }
-
 function logw(msg: string) {
     console.warn(msg);
     if (logGrade <= 4) {
@@ -61,8 +58,8 @@ function logw(msg: string) {
         }
     }
 }
-
 function loge(msg: string) {
+    console.error(msg);
     if (logGrade <= 5) {
         if (canIUseLogManage && logger != null) {//LogManager没有error方法，只能用warn代替
             logger.warn(msg);

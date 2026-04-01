@@ -51,16 +51,9 @@
     "pages/volume/index",
     "pages/networkDial/index",
     "pages/heartRateTest/index",
-    "pages/languagePage/index",
-    "pages/manualMeasurement/index",
-    "pages/skinColorSetting/index",
+    "pages/stressTest/index",
     "pages/microCheck/index",
-    "pages/sos/index",
-    "pages/b3AutoTestFeature/b3AutoTestFeature",
-    "pages/JH58/index",
-    "pages/ZT163ScreenKillFunction/index",
-    "pages/4GService/Index",
-    "pages/pressureTest/index"
+    "pages/languagePage/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

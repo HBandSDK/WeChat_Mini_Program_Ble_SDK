@@ -91,12 +91,12 @@ Page({
     }
     veepooFeature.veepooSendAutoTestSwitchDataManager(data);
   },
-  clickValue7(e: any) {
+  clickValue7(e: any) {//压力
     this.setData({
       checkStatus7: e.detail.value
     })
     let data = {
-      fallWarning: e.detail.value ? 'start' : 'stop'
+      pressure: e.detail.value ? 'start' : 'stop'
     }
     veepooFeature.veepooSendAutoTestSwitchDataManager(data)
   },
@@ -105,11 +105,17 @@ Page({
       checkStatus8: e.detail.value
     })
     let data = {
+      fallWarning: e.detail.value ? 'start' : 'stop'
+    }
+    veepooFeature.veepooSendAutoTestSwitchDataManager(data)
+  },
+  clickValue9(e: any) {
+    this.setData({
+      checkStatus9: e.detail.value
+    })
+    let data = {
       lowOxygen: e.detail.value ? 'start' : 'stop'
     }
-    // let data = {
-    //   lowOxygen:'start'
-    // }
     veepooFeature.veepooSendAutoTestSwitchDataManager(data)
   },
   // 监听订阅 notifyMonitorValueChange

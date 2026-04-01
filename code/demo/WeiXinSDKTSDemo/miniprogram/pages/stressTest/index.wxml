@@ -1,0 +1,32 @@
+<view class="container">
+
+  <view class="title">压力测量</view>
+
+  <view class="measure-area">
+    <view class="stress-value {{isMeasuring ? 'measuring' : ''}}">
+      <text class="value">{{stress}}</text>
+      <text class="unit">分</text>
+    </view>
+    <view class="stress-level" wx:if="{{stressLevel}}">
+      压力等级：{{stressLevel}}
+    </view>
+    <view class="measuring-tip" wx:if="{{isMeasuring}}">
+      测量中，请保持静止...
+    </view>
+  </view>
+
+  <view class="btn-area">
+    <button class="btn btn-start" catch:tap="stressStart" disabled="{{isMeasuring}}">开始测量</button>
+    <button class="btn btn-stop" catch:tap="stressStop" disabled="{{!isMeasuring}}">结束测量</button>
+  </view>
+
+  <view class="info-area">
+    <view class="info-title">压力等级说明：</view>
+    <view class="info-item">0-20：放松</view>
+    <view class="info-item">21-40：正常</view>
+    <view class="info-item">41-60：中等</view>
+    <view class="info-item">61-80：偏高</view>
+    <view class="info-item">81-100：很高</view>
+  </view>
+
+</view>

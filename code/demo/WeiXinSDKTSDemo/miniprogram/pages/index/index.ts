@@ -92,10 +92,6 @@ Component({
         path: '/pages/contactPerson/index'
       },
       {
-        name: 'SOS',
-        path: '/pages/sos/index'
-      },
-      {
         name: '闹钟',
         path: '/pages/alarmClock/index'
       },
@@ -132,13 +128,13 @@ Component({
         path: '/pages/bloodGlucose/index'
       },
       {
-        name: 'ota',
+        name: 'ota封装版',
         path: '/pages/ota/index'
       },
-      // {
-      //   name: 'ota原生版',
-      //   path: '/pages/otaNavite/index'
-      // },
+      {
+        name: 'ota原生版',
+        path: '/pages/otaNavite/index'
+      },
       {
         name: '久坐提醒',
         path: '/pages/sedentaryToast/index'
@@ -164,7 +160,7 @@ Component({
         path: '/pages/bloodOxygen/index'
       },
       {
-        name: '血氧手动',
+        name: '血氧手动测量',
         path: '/pages/bloodOxygen2/index'
       },
       {
@@ -187,10 +183,10 @@ Component({
         name: 'android编码',
         path: '/pages/androidCode/index'
       },
-      {
-        name: 'UI风格',
-        path: '/pages/uiStyle/index'
-      },
+      // {
+      //   name: 'UI风格',
+      //   path: '/pages/uiStyle/index'
+      // },
       {
         name: '同步时间',
         path: '/pages/syncTime/index'
@@ -204,40 +200,16 @@ Component({
         path: '/pages/heartRateTest/index'
       },
       {
-        name: '语言切换',
-        path: '/pages/languagePage/index'
+        name: '压力测量',
+        path: '/pages/stressTest/index'
       },
       {
-        name: '读取手动测量',
-        path: '/pages/manualMeasurement/index'
-      },
-      {
-        name: '肤色设置',
-        path: '/pages/skinColorSetting/index'
-      },
-      {
-        name: '微体检',
+        name: '微体检测量',
         path: '/pages/microCheck/index'
       },
       {
-        name: 'B3自动测量',
-        path: '/pages/b3AutoTestFeature/b3AutoTestFeature'
-      },
-      {
-        name: 'JH58',
-        path: '/pages/JH58/index'
-      },
-      {
-        name: 'ZT163常灭屏',
-        path: '/pages/ZT163ScreenKillFunction/index'
-      },
-      {
-        name: '4G服务',
-        path: '/pages/4GService/Index'
-      },
-      {
-        name: '压力测量',
-        path: '/pages/pressureTest/index'
+        name: '语言切换',
+        path: `pages/languagePage/index`
       },
     ],
     valData: {
@@ -246,9 +218,8 @@ Component({
     }
   },
   methods: {
-
-
     packRgb(r: any, g: any, b: any) {
+
 
       // 构造高位字节
       console.log("(r << 3) & 0xF8)=>", (r << 3) & 0xF8)
@@ -320,47 +291,46 @@ Component({
       let self = this;
 
       // let blePackage = {"deviceId":"FA:4E:30:9C:E6:B0","rssi":-38,"connectable":true,"data":{"0":2,"1":1,"2":6,"3":9,"4":255,"5":248,"6":248,"7":76,"8":197,"9":217,"10":146,"11":3,"12":248,"13":3,"14":3,"15":231,"16":254,"17":5,"18":9,"19":86,"20":50,"21":55,"22":90},"deviceName":"V27Z"}
-      // 初始化蓝牙适配器
 
-      let blePackage = { "deviceId": "F0:87:99:D6:F7:2D", "rssi": -53, "connectable": true, "data": { "0": 2, "1": 1, "2": 6, "3": 3, "4": 3, "5": 231, "6": 254, "7": 3, "8": 25, "9": 65, "10": 3, "11": 9, "12": 255, "13": 248, "14": 248, "15": 46, "16": 28, "17": 105, "18": 64, "19": 211, "20": 20, "21": 6, "22": 9, "23": 70, "24": 49, "25": 48, "26": 48, "27": 0 }, "deviceName": "F100" }
-
-
-      const valuesArray = Object.values(blePackage.data);
-      console.log("valuesArray=>", valuesArray)
-      let hexValue = valuesArray.map(value => value.toString(16).toUpperCase().padStart(2, '0'));
-      console.log('hexValue==>', hexValue)
-      let hexMac = hexValue.splice(15, 6).reverse();
-      let max = '';
-      for (let i = 0; i < hexMac.length; i++) {
-        if (i == hexMac.length - 1) {
-          max = max + hexMac[i]
-        } else {
-          max = max + hexMac[i] + ':'
-        }
-      }
-      console.log("mac=>", max);
-
-      let dataLength = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0].length
-      let tbyte = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0]
-
-      let hex = ["02", "01", "06", "03", "03", "E7", "FE", "03", "19", "41", "03", "09", "FF", "F8", "F8", "2E", "1C", "69", "40", "D3", "14", "06", "09", "46", "31", "30", "30", "00"]
+      // let blePackage = { "deviceId": "F0:87:99:D6:F7:2D", "rssi": -53, "connectable": true, "data": { "0": 2, "1": 1, "2": 6, "3": 3, "4": 3, "5": 231, "6": 254, "7": 3, "8": 25, "9": 65, "10": 3, "11": 9, "12": 255, "13": 248, "14": 248, "15": 46, "16": 28, "17": 105, "18": 64, "19": 211, "20": 20, "21": 6, "22": 9, "23": 70, "24": 49, "25": 48, "26": 48, "27": 0 }, "deviceName": "F100" }
 
 
-      for (let i = 0; i < hex.length; i++) {
-        if (hex[i] + hex[i + 1] == 'F8F8') {
-          console.log('index====>', i + 2)
-        }
+      // const valuesArray = Object.values(blePackage.data);
+      // console.log("valuesArray=>", valuesArray)
+      // let hexValue = valuesArray.map(value => value.toString(16).toUpperCase().padStart(2, '0'));
+      // console.log('hexValue==>', hexValue)
+      // let hexMac = hexValue.splice(15, 6).reverse();
+      // let max = '';
+      // for (let i = 0; i < hexMac.length; i++) {
+      //   if (i == hexMac.length - 1) {
+      //     max = max + hexMac[i]
+      //   } else {
+      //     max = max + hexMac[i] + ':'
+      //   }
+      // }
+      // console.log("mac=>", max)
 
-      }
+      // let dataLength = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0].length
+      // let tbyte = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0]
 
-      if (dataLength >= 8) {
-        let endIndex: number = 7;
-        if (tbyte[0] === 0xF8 && tbyte[1] === 0xF9) {
-          endIndex += 4;
-        }
+      // let hex = ["02", "01", "06", "03", "03", "E7", "FE", "03", "19", "41", "03", "09", "FF", "F8", "F8", "2E", "1C", "69", "40", "D3", "14", "06", "09", "46", "31", "30", "30", "00"]
 
 
-      }
+      // for (let i = 0; i < hex.length; i++) {
+      //   if (hex[i] + hex[i + 1] == 'F8F8') {
+      //     console.log('index====>', i + 2)
+      //   }
+
+      // }
+
+      // if (dataLength >= 8) {
+      //   let endIndex: number = 7;
+      //   if (tbyte[0] === 0xF8 && tbyte[1] === 0xF9) {
+      //     endIndex += 4;
+      //   }
+
+
+      // }
 
       veepooBle.veepooWeiXinSDKStopSearchBleManager(function (e: any) {
         console.log("停止蓝牙搜索=>", e)
@@ -373,21 +343,15 @@ Component({
         console.log(`device ${res.deviceId} state has changed, connected: ${res.connected}`)
         wx.setStorageSync('VPDevice', null)
       })
-      const items = Array.from({
-        length: 40
-      }, () => 0)
-      console.log("items=>", items)
-
+      
 
       let data = {
         status: true
       }
       veepooBle.veepooWeiXinSDKRawDataShowStatus(data);
 
-      let str = "2025-09-03 17:48:00";
-      const isoStr = str.replace(' ', 'T');
-      const date = new Date(isoStr);
-      console.log('时间戳==》', date.getTime());
+      // let date = new Date();
+      // console.log("date==>", self.getNextDays('2024-08-01', 3));
 
     },
 
@@ -424,10 +388,7 @@ Component({
     },
     // 获取背景信息
     getBackgroundInfo() {
-      let data = {
-        type: 1
-      }
-      veepooFeature.veepooSendReadCustomBackgroundDailManager(data);
+      veepooFeature.veepooSendReadCustomBackgroundDailManager()
     },
 
     // 断开连接
@@ -555,15 +516,16 @@ Component({
       this.ElectricQuantityManager();
       console.log("读取步数")
       this.StepCalorieDistanceManager();
-      // this.getBackgroundInfo()
+      this.getBackgroundInfo()
       let bleDate = wx.getStorageSync('bleDate')
       console.log("bleDate==>", bleDate)
       wx.setBLEMTU({
         deviceId: bleDate.deviceId,
         mtu: 247,
         success: res => {
+
           console.log("第一个res=>", res)
-        }, //
+        },
         fail: (res) => {
           wx.getBLEMTU({
             deviceId: bleDate.deviceId, success: res => {

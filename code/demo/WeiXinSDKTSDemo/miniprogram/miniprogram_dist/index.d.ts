@@ -1,3 +1,4 @@
 declare let veepooBle: any;
 declare let veepooFeature: any;
-export { veepooBle, veepooFeature };
+declare let veepooLogger: any;
+export { veepooBle, veepooFeature, veepooLogger };

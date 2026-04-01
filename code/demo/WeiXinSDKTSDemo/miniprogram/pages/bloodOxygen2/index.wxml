@@ -1,10 +1,13 @@
 <view class="box">
 
   <view class="box-content">
-    <view>血氧：{{device.content.bloodOxygen}}</view>
+    <view>血氧：{{bloodOxygen}} %</view>
+    <view wx:if="{{statusMsg}}" style="color: #07c160; margin-top: 10px;">{{statusMsg}}</view>
+    <view wx:if="{{errorMsg}}" style="color: #fa5151; margin-top: 10px;">{{errorMsg}}</view>
+    <view wx:if="{{isMeasuring}}" style="color: #10aeff; margin-top: 10px;">正在测量中...</view>
   </view>
 
-  <view class="btn"><button catch:tap="startTest">开启测量</button></view>
-  <view class="btn"><button catch:tap="stopTest">关闭测量</button></view>
+  <view class="btn"><button catch:tap="startTest" disabled="{{isMeasuring}}">开启测量</button></view>
+  <view class="btn"><button catch:tap="stopTest" disabled="{{!isMeasuring}}">关闭测量</button></view>
 
 </view>

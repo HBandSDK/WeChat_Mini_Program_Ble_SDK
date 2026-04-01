@@ -1,4 +1,5 @@
 import { loge, logi, logv, setTagEnable } from "../utils/log";
+import { RCSPManager, RCSP, RCSPOpWatchDial } from "../lib/rcsp-impl/rcsp";
 export class BluetoothManager {
   private _tag = "BluetoothManager"
   private _scanImpl: ScanImpl
@@ -465,6 +466,8 @@ export interface IConnect {
   removeCallback(callback: ConnectImplCallback): void
   /** 连接设备*/
   connectDevice(device: BluetoothDevice, connectCallback: ConnectCallback): boolean
+  /** 自定义切换设备 */
+  handoverServiceManager(value: any,callback:any): void
   /** 断开已连接设备 */
   disconnect(device: BluetoothDevice): void
   /** 断开已连接设备 */
@@ -478,8 +481,9 @@ export interface IConnect {
   /** 是否已连接*/
   isConnected(device: BluetoothDevice): boolean
 }
+let count = 0
 //todo 想办法不把区分OTA放在这里做
-class ConnectImpl implements IConnect {
+export class ConnectImpl implements IConnect {
   private _tag = "ConnectImpl"
   private _bluetoothAdapterAvailable: boolean = false
   private _connectConfigure: ConnectSettingConfigure = new ConnectSettingConfigure()
@@ -493,7 +497,10 @@ class ConnectImpl implements IConnect {
   constructor() {
     setTagEnable(this._tag, true)
     this._platform = wx.getSystemInfoSync().platform;
+
   }
+
+
   /**
    * 设置连接配置
    */
@@ -546,19 +553,22 @@ class ConnectImpl implements IConnect {
         wx.setBLEMTU({//怀疑并发的时候会mtu混乱
           deviceId: device.deviceId,
           mtu: this._connectConfigure.mtu,
-
           success: res => {
+            console.log("this._connectConfigure.mtu==>", this._connectConfigure.mtu)
             logv('调节MTU成功，' + res.mtu, this._tag);
             this._updateDeviceIdMtu(device.deviceId, res.mtu)
             this._onMTUChange(device, res.mtu)
+            console.log("获取设备服务的device=>", device)
             this._getBLEDeviceServices(device);
             // this._registerConnStatusListener()
           },
           fail: (res) => {
-
             wx.getBLEMTU({
-              writeType: "writeNoResponse",
               deviceId: device.deviceId, success: res => {
+                console.log("调节mtu成功fail")
+                console.log("this._connectConfigure.mtu==>", this._connectConfigure.mtu)
+
+                console.log("device.deviceId, res.mtu=>", device.deviceId, res.mtu)
                 logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
                 this._updateDeviceIdMtu(device.deviceId, res.mtu)
                 this._onMTUChange(device, res.mtu)
@@ -577,27 +587,24 @@ class ConnectImpl implements IConnect {
           }
         })
       } else {
-        // 延时，否则可能存在问题
-        setTimeout(() => {
-          wx.getBLEMTU({
-            writeType: "writeNoResponse",// 写入不回复，删除ios无法通过
-            deviceId: device.deviceId, success: res => {
-              logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
-              this._updateDeviceIdMtu(device.deviceId, res.mtu)
-              this._onMTUChange(device, res.mtu)
-              this._getBLEDeviceServices(device);
-              // this._registerConnStatusListener()
-            }, fail: res => {
-              loge('调节MTU失败，' + JSON.stringify(res), this._tag);
-              this.disconnect(device)
-              const error: BluetoothError = {
-                errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
-                errMsg: 'connection fail'
-              }
-              this._onConnectFailed(device, error)
+        wx.getBLEMTU({
+          deviceId: device.deviceId, success: res => {
+            console.log("调节mtu成功ios")
+            logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
+            this._updateDeviceIdMtu(device.deviceId, res.mtu)
+            this._onMTUChange(device, res.mtu)
+            this._getBLEDeviceServices(device);
+            // this._registerConnStatusListener()
+          }, fail: res => {
+            loge('调节MTU失败，' + JSON.stringify(res), this._tag);
+            this.disconnect(device)
+            const error: BluetoothError = {
+              errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
+              errMsg: 'connection fail'
             }
-          })
-        }, 1000);
+            this._onConnectFailed(device, error)
+          }
+        })
       }
     }
     connectOption.fail = (e) => {
@@ -609,82 +616,22 @@ class ConnectImpl implements IConnect {
         this._onConnectFailed(device, e)
       }
     }
-
-
-    let vp_connected_verify = wx.getStorageSync("vp_connected_verify");
-
-    // 后续新增
-    if (vp_connected_verify) {
-      wx.setStorageSync("vp_connected_verify", false);
-
-      if (this._platform == 'android') {
-        wx.setBLEMTU({//怀疑并发的时候会mtu混乱
-          deviceId: device.deviceId,
-          mtu: this._connectConfigure.mtu,
-
-          success: res => {
-            logv('调节MTU成功，' + res.mtu, this._tag);
-            this._updateDeviceIdMtu(device.deviceId, res.mtu)
-            this._onMTUChange(device, res.mtu)
-            this._getBLEDeviceServices(device);
-            // this._registerConnStatusListener()
-          },
-          fail: (res) => {
-
-            wx.getBLEMTU({
-              writeType: "writeNoResponse",
-              deviceId: device.deviceId, success: res => {
-                logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
-                this._updateDeviceIdMtu(device.deviceId, res.mtu)
-                this._onMTUChange(device, res.mtu)
-                this._getBLEDeviceServices(device);
-                // this._registerConnStatusListener()
-              }, fail: res => {
-                loge('调节MTU失败，' + JSON.stringify(res), this._tag);
-                this.disconnect(device)
-                const error: BluetoothError = {
-                  errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
-                  errMsg: 'connection fail'
-                }
-                this._onConnectFailed(device, error)
-              }
-            })
-          }
-        })
-      } else {
-
-        setTimeout(() => {
-          wx.getBLEMTU({
-            writeType: "writeNoResponse",
-            deviceId: device.deviceId, success: res => {
-              logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
-              this._updateDeviceIdMtu(device.deviceId, res.mtu)
-              this._onMTUChange(device, res.mtu)
-              this._getBLEDeviceServices(device);
-              // this._registerConnStatusListener()
-            }, fail: res => {
-              loge('调节MTU失败，' + JSON.stringify(res), this._tag);
-              this.disconnect(device)
-              const error: BluetoothError = {
-                errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
-                errMsg: 'connection fail'
-              }
-              this._onConnectFailed(device, error)
-            }
-          })
-        }, 1000);
-
-      }
-
-    } else {
-      console.log("========杰里开始重连=========");
-      wx.setStorageSync("vp_connected_verify", true);
-
-      wx.createBLEConnection(connectOption)
-    }
-    // wx.createBLEConnection(connectOption)
+    wx.createBLEConnection(connectOption)
     return result
   }
+
+  /* 
+  自定义外部连接成功映射函数
+  */
+  handoverServiceManager(value: any,callback:any) {
+    this._addConnectingDeviceId(value.device)
+    this._updateDeviceIdMtu(value.device.deviceId, value.mtu)
+    this._onMTUChange(value.device, value.mtu)
+    this._getBLEDeviceServices(value.device,(result:any)=>{
+      callback(result)
+    });
+  }
+
   /** 断开已连接设备 */
   public disconnect(device: BluetoothDevice): void {
     // if (this.isConnectedOrConnecting() && this.currentDeviceId != null) {
@@ -735,11 +682,16 @@ class ConnectImpl implements IConnect {
     let that = this;
     let resFun = (res: WechatMiniprogram.OnBLEConnectionStateChangeListenerResult) => {
       // 该方法回调中可以用于处理连接意外断开等异常情况
+      let device = wx.getStorageSync('bleInfo')
       logv("蓝牙连接状态变化" + JSON.stringify(res));
+
       if (res.connected) {
         // that.status = 2;
         // that._getBLEDeviceServices();
       } else {
+        // 断开连接，清除数据
+        RCSPManager.JLOnConnectDisconnect(device)
+
         const deviceIdLowerCase = res.deviceId.toLowerCase()
         let position = -1
         for (let index = 0; index < this._connectedDeviceIdArray.length; index++) {
@@ -779,13 +731,14 @@ class ConnectImpl implements IConnect {
   /**
    * 获取所有服务
    */
-  private _getBLEDeviceServices(device: BluetoothDevice) {
+
+  private _getBLEDeviceServices(device: BluetoothDevice, callback?: any) {
     logv('获取所有服务的 uuid:' + device.deviceId, this._tag);
     wx.getBLEDeviceServices({
       // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
       deviceId: device.deviceId,
       success: res => {
-        // logv('获取设备服务成功:' + JSON.stringify(res.services));
+        logv('获取设备服务成功:' + JSON.stringify(res.services));
         var list = res.services;
         if (list.length <= 0) {
           const error: BluetoothError = {
@@ -797,11 +750,14 @@ class ConnectImpl implements IConnect {
         }
         let notifyServiceNum = 0;
         let notifySuccessServiceNum = 0;
+        wx.setStorageSync('getServiceStatus', true)
         list.forEach((s) => {
           logv('设备服务:' + s.uuid.toLowerCase(), this._tag);
-          const idx = inArray(this._connectConfigure.notifyServiceArray, "serviceUUID", s.uuid.toLowerCase())
+          let notifyServiceArray = [{ "serviceUUID": "0000ae00-0000-1000-8000-00805f9b34fb", "notifyCharacteristicsUUID": ["0000ae02-0000-1000-8000-00805f9b34fb"] }]
+          const idx = inArray(notifyServiceArray, "serviceUUID", s.uuid.toLowerCase())
           if (idx != -1) {
-            const bluetoothService = this._connectConfigure.notifyServiceArray[idx]
+            console.log("获取服务后的idx")
+            const bluetoothService = notifyServiceArray[idx]
             notifyServiceNum++;
             this._getBLEDeviceCharacteristics(device, s.uuid, bluetoothService.notifyCharacteristicsUUID, {
               notifySuccess: () => {
@@ -815,22 +771,35 @@ class ConnectImpl implements IConnect {
                   errMsg: "no charateristic"
                 }
                 this._onConnectFailed(device, error)
+              },
+              authSuccess: (result: any) => {
+                setTimeout(() => {
+                  callback(result);
+                }, 1000);
               }
             });
+          } else {
+            console.log("dfasfsadf")
           }
+
         })
       },
       fail: e => {
         loge('获取设备服务失败，错误码：' + e.errCode, this._tag);
         this._onConnectFailed(device, e)
+        if (count < 3) {
+          this._getBLEDeviceServices(device)
+          count++
+        }
       }
     });
   }
   /**
    * 获取某个服务下的所有特征值
    */
-  private _getBLEDeviceCharacteristics(device: BluetoothDevice, serviceId: string, characteristics: Array<string>, callback: { notifySuccess: () => void, notifyFail: () => void }) {
+  private _getBLEDeviceCharacteristics(device: BluetoothDevice, serviceId: string, characteristics: Array<string>, callback: { notifySuccess: () => void, notifyFail: () => void, authSuccess: (res: any) => void }) {
     logv("获取某个服务下的所有特征值" + "\tdeviceId=" + device.deviceId + "\tserviceId=" + serviceId, this._tag);
+
     wx.getBLEDeviceCharacteristics({
       // 这里的 deviceId 需要已经通过 createBLEConnection 与对应设备建立链接
       deviceId: device.deviceId,
@@ -872,6 +841,10 @@ class ConnectImpl implements IConnect {
                   }
                 }, notifyFail: () => {
                   callback.notifySuccess()
+                },
+                authSuccess: (result: any) => {
+                  callback.authSuccess(result);
+
                 }
               })
             }
@@ -895,7 +868,7 @@ class ConnectImpl implements IConnect {
     deviceId: string,
     serviceId: string,
     characteristicId: string
-  }, callback: { notifySuccess: () => void, notifyFail: () => void }) {
+  }, callback: { notifySuccess: () => void, notifyFail: () => void, authSuccess: (res: any) => void }) {
     const that = this;
     wx.notifyBLECharacteristicValueChange({
       state: true, // 启用 notify 功能
@@ -913,10 +886,17 @@ class ConnectImpl implements IConnect {
         //   if (that.isAuth) {
         //     that._startAuth(obj.deviceId)
         //   } else {
-        //     this._connectSuccsed()
+        // this._connectSuccsed()
         //   }
         // }
         callback.notifySuccess()
+        let device = wx.getStorageSync('bleInfo');
+        // 杰里认证
+        setTimeout(() => {
+          RCSPManager.JieLiDeviceVerify(device, (res: any) => {
+            callback.authSuccess(res);
+          })
+        }, 1000);
       },
       fail: (err) => {
         loge('使能通知失败' + JSON.stringify(err));
@@ -926,6 +906,11 @@ class ConnectImpl implements IConnect {
     });
   }
 
+
+  // 订阅消息
+  jieLiNotifyMonitorValueChange(device: any) {
+    this._getBLEDeviceServices(device)
+  }
 
   private _addConnectingDeviceId(device: BluetoothDevice) {
     this._connectingDeviceIdArray.push(device)
@@ -1020,7 +1005,23 @@ class ConnectImpl implements IConnect {
       }
     });
   }
+
+  _onConnectDisconnectManager(device: BluetoothDevice) {
+    this._deleteConnectedDeviceId(device)
+    this._deleteDeviceIdMtu(device.deviceId);
+    console.log("_callbacks=>", this._callbacks);
+    console.log("device=>", device)
+    this._callbacks.forEach(c => {
+      if (c.onConnectDisconnect) {
+        c.onConnectDisconnect(device);
+      }
+    });
+  }
 }
+
+
+
+
 export class ConnectSettingConfigure {
   /**连接超时*/
   timeout?: number
@@ -1057,15 +1058,15 @@ export class ConnectCallback {
 }
 export function convertWechatDeviceToBluetoothDevice(device: WechatMiniprogram.BlueToothDevice): BluetoothDevice {
   const result = new BluetoothDevice()
-  result.RSSI = device.RSSI
-  result.advertisData = device.advertisData
-  result.advertisServiceUUIDs = device.advertisServiceUUIDs
-  result.connectable = device.connectable
-  result.deviceId = device.deviceId
-  result.localName = device.localName
-  result.name = device.name
-  result.serviceData = device.serviceData
-  return result
+  result.RSSI = device.RSSI 
+  result.advertisData = device.advertisData 
+  result.advertisServiceUUIDs = device.advertisServiceUUIDs 
+  result.connectable = device.connectable 
+  result.deviceId = device.deviceId 
+  result.localName = device.localName 
+  result.name = device.name 
+  result.serviceData = device.serviceData 
+  return result 
 }
 function inArray(arr: any, key: any, val: any) {
   for (let i = 0; i < arr.length; i++) {

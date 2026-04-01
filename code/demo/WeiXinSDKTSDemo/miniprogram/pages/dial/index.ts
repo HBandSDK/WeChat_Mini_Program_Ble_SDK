@@ -1,12 +1,9 @@
 import { RCSPOpWatchDial } from "../../jieli_sdk/lib/rcsp-impl/rcsp";
-import { RCSPManager, RCSP } from "../../jieli_sdk/lib/rcsp-impl/rcsp"
 import { OPWatchDial, OPDirectoryBrowse } from "../../jieli_sdk/jl_lib/jl-rcsp-op/jl_op_watch_1.1.0";
 var RCSPOpWatchDialCallback: OPWatchDial.OperaterEventCallbackWatchDial
 import { BleDataHandler } from '../../jieli_sdk/lib/ble-data-handler'
 import { showActionSheet } from "../../jieli_sdk/utils/util";
-import { veepooJLGetDialListManager, veepooJLSetToCurrentUseManager, veepooJLDeleteDialManager, veepooJLGetDialVersionInfoManager, veepooJLGetDialBackgroundManager, veepooJLUseTheCurrentDialListManager, veepooJLAuthenticationManager } from '../../jieli_sdk/index';
-import { DeviceManager, DeviceBluetooth } from "../../jieli_sdk/lib/rcsp-impl/dev-bluetooth";
-
+import { veepooJLGetDialListManager, veepooJLSetToCurrentUseManager, veepooJLDeleteDialManager, veepooJLGetDialVersionInfoManager, veepooJLGetDialBackgroundManager, veepooJLUseTheCurrentDialListManager, veepooJLAuthenticationManager } from '../../jieli_sdk/index'
 Page({
   /**
    * 页面的初始数据
@@ -20,34 +17,13 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  _RCSPWrapperEventCallback: RCSP.RCSPWrapperEventCallback.prototype,
+
   onLoad() {
 
-    BleDataHandler.init();
-
-    this._RCSPWrapperEventCallback = new RCSP.RCSPWrapperEventCallback()
-    this._RCSPWrapperEventCallback.onEvent = (event) => {
-      if (event.type === "onSwitchUseDevice") {
-        const connectedDeviceId = event.onSwitchUseDeviceEvent?.device?.deviceId
-        console.log(" onSwitchUseDevice111: " + connectedDeviceId);
-        this.setData({
-          connectedDeviceId: connectedDeviceId == undefined ? "" : connectedDeviceId
-        })
-
-        if (connectedDeviceId != undefined) {
-          setTimeout(() => {
-            console.log('==================================认证成功=====================================');
-          }, 300);
-        }
-      }
-    }
-    RCSPManager.observe(this._RCSPWrapperEventCallback)
-
+    BleDataHandler.init()
   },
   onUnload() {
-    RCSPOpWatchDial?.unregisterEventCallback(RCSPOpWatchDialCallback);
-
-
+    RCSPOpWatchDial?.unregisterEventCallback(RCSPOpWatchDialCallback)
   },
   /**
   * 点击事件--添加表盘
@@ -81,17 +57,11 @@ Page({
   */
   setJLVerify() {
     let self = this;
-    let device = wx.getStorageSync('bleInfo');
-
-
-    DeviceManager.connecDevice(device);
-
+    let device = wx.getStorageSync('bleInfo')
     // 杰里设备认证
-    // veepooJLAuthenticationManager(device,(res:any)=>{
-    //   console.log("杰理认证状态==>",res)
-    // })
-
-
+    veepooJLAuthenticationManager(device,(res:any)=>{
+      console.log("杰理认证状态==>",res)
+    })
   },
   /**
   * 点击事件--表盘操作  
@@ -242,7 +212,6 @@ Page({
       })
     })
   },
-  
   /**
    * 表盘操作--获取表盘版本信息
    */

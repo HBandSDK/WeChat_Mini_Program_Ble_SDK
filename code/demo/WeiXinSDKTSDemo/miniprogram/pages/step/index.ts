@@ -50,6 +50,8 @@ Page({
     veepooFeature.veepooReadStepCalorieDistanceManager(data);
   },
 
+  // veepooWeiXinSDKNotifyMonitorValueChange
+  // veepooBle
   // 监听订阅 notifyMonitorValueChange
   notifyMonitorValueChange() {
     let self = this;

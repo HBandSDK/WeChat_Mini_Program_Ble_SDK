@@ -1,5 +1,4 @@
 import { logi } from "../utils/log";
-import { incrementMacAddress, getDeviceDataMac } from "../utils/util";
 import { BluetoothDevice } from "./bluetooth";
 
 /todo 不可以跟上层扫描冲突，所以要上层的扫描/
@@ -9,7 +8,6 @@ export class Reconnect {
   isFinished: boolean = false;
   connectingDevice: BluetoothDevice | undefined;
   timeoutNumber: number = -1;
-  isFindDevice: boolean = false;
   constructor(op: ReconnectOp, callback: ReconnectCallback) {
     this.reconnectOp = op;
     this.reconnectCallback = callback;
@@ -50,15 +48,33 @@ export class Reconnect {
   //上层扫描发现设备
   onDiscoveryDevice(device: BluetoothDevice) {
     if (!this.isFinishedReconnect()) {
-      if (this.reconnectOp?.isReconnectDevice(device)) {
+
+      // 上一个连接的mac+1
+      // if (device.name == 'DFULang') {
+      if (device.name == 'DFULang') {
         this.onScanStop()
         console.log("上层扫描发现设备device=>", device);
         this.connectingDevice = device
         console.log(" this.reconnectOp=>", this.reconnectOp)
+        // logi("onDiscoveryDevice : " + " connectingDevice :" + this.connectingDevice?.deviceId);
         this.reconnectOp?.connectDevice(device)
       }
+
+      // if (this.reconnectOp?.isReconnectDevice(device)) {
+      //   this.connectingDevice = device
+      //   // logi("onDiscoveryDevice : " + " connectingDevice :" + this.connectingDevice?.deviceId);
+      //   this.reconnectOp?.connectDevice(device)
+      // }
     }
+    // if (!this.isFinishedReconnect()) {
+    //     if (this.reconnectOp?.isReconnectDevice(device)) {
+    //         this.connectingDevice = device
+    //         // logi("onDiscoveryDevice : " + " connectingDevice :" + this.connectingDevice?.deviceId);
+    //         this.reconnectOp?.connectDevice(device)
+    //     }
+    // }
   }
+  
   //上层连接设备成功-
   onDeviceConnected(deviceId: string) {
     if (!this.isFinishedReconnect()) {
@@ -67,17 +83,13 @@ export class Reconnect {
         clearTimeout(this.timeoutNumber)
         this.reconnectCallback?.onReconnectSuccess(deviceId)
         this.isFinished = true
-        this.isFindDevice = false;
       }
     }
   }
-
   private isFinishedReconnect(): boolean {
     return this.isFinished;
   }
 }
-
-
 //新回连方式解析器
 export function parseReconnectNewWayMsg(rawData: ArrayBuffer) {
 

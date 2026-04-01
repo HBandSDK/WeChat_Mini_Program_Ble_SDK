@@ -553,6 +553,7 @@ Page({
       backImg.src = pic;
       backImg.onload = () => {
         ctx.drawImage(backImg, 0, 0, 172, 207);
+
         const Img = canvas.createImage();
         Img.src = back;
         Img.onload = () => {

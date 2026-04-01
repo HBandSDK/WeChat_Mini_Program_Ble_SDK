@@ -37,21 +37,21 @@
     </view>
   </view>
   <view class="box-item">
-    <view>跌倒提醒</view>
+    <view>压力自动检测</view>
     <view>
       <switch checked="{{checkStatus7}}" bindchange="clickValue7" />
     </view>
   </view>
-
   <view class="box-item">
-
-    <view>缺氧提醒(低氧唤醒)</view>
-
+    <view>跌倒提醒</view>
     <view>
       <switch checked="{{checkStatus8}}" bindchange="clickValue8" />
     </view>
-
   </view>
-
+  <view class="box-item">
+    <view>缺氧提醒</view>
+    <view>
+      <switch checked="{{checkStatus9}}" bindchange="clickValue9" />
+    </view>
+  </view>
 </view>
-

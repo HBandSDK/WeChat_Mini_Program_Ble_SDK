@@ -1,53 +1,82 @@
-<view>
+<view class="container">
 
-  <button style="margin-top: 20px;" catch:tap="microCheckStart">开始测量</button>
-  <button style="margin-top: 20px;" catch:tap="microCheckStop">关闭测量</button>
-  <view class="body-item">
-    <view class="item-left">测试进度：</view>
-    <view class="item-left">{{progress}}</view>
-  </view>
+  <view class="title">微体检测量</view>
 
-  <view class="body-item">
-    <view class="item-left">测试结果：</view>
-  </view>
-  <view class="body-item">
-    <view class="item-left">心率</view>
-    <view class="item-left">{{heartRate}}</view>
-  </view>
-  <view class="body-item">
-    <view class="item-left">血氧</view>
-    <view class="item-left">{{bloodOxygen}}</view>
-  </view>
-  <view class="body-item">
-    <view class="item-left">压力</view>
-    <view class="item-left">{{pressure}}</view>
-  </view>
-  <view class="body-item">
-    <view class="item-left">情绪</view>
-    <view class="item-left">{{emotion}}</view>
-  </view>
-  <view class="body-item">
-    <view class="item-left">疲劳度</view>
-    <view class="item-left">{{fatigueLevel}}</view>
-  </view>
-  <view class="body-item">
-    <view class="item-left">血糖</view>
-    <view class="item-left">{{bloodSugar}}</view>
+  <!-- 进度区域 -->
+  <view class="progress-area" wx:if="{{isMeasuring}}">
+    <view class="progress-text">测量中...</view>
+    <progress class="progress-bar" percent="{{progress}}" show-info stroke-width="8" activeColor="#07c160" />
+    <view class="progress-tip">请保持静止，正在检测多项健康指标...</view>
   </view>
 
-  <view class="body-item">
-    <view class="item-left">体温</view>
-    <view class="item-left">{{bodyTemperature}}</view>
+  <!-- 结果区域 -->
+  <view class="result-area" wx:if="{{hasResult}}">
+    <view class="result-title">检测结果</view>
+
+    <view class="result-grid">
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.heartRate}}</view>
+        <view class="item-label">心率(bpm)</view>
+      </view>
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.bloodOxygen}}</view>
+        <view class="item-label">血氧(%)</view>
+      </view>
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.pressure}}</view>
+        <view class="item-label">压力</view>
+      </view>
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.hrv}}</view>
+        <view class="item-label">HRV(ms)</view>
+      </view>
+    </view>
+
+    <view class="result-grid">
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.highPressure}}/{{microCheckData.lowPressure}}</view>
+        <view class="item-label">血压(mmHg)</view>
+      </view>
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.bodyTemperature}}</view>
+        <view class="item-label">体温(℃)</view>
+      </view>
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.bloodSugar}}</view>
+        <view class="item-label">血糖(mmol/L)</view>
+      </view>
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.emotion}}</view>
+        <view class="item-label">情绪指数</view>
+      </view>
+    </view>
+
+    <view class="result-grid">
+      <view class="result-item">
+        <view class="item-value">{{microCheckData.fatigueLevel}}</view>
+        <view class="item-label">疲劳度</view>
+      </view>
+    </view>
   </view>
 
-  <view class="body-item">
-    <view class="item-left">高压</view>
-    <view class="item-left">{{highPressure}}</view>
-  </view>
-  <view class="body-item">
-    <view class="item-left">低压</view>
-    <view class="item-left">{{lowPressure}}</view>
+  <!-- 错误提示 -->
+  <view class="error-area" wx:if="{{errorMsg}}">
+    <view class="error-text">{{errorMsg}}</view>
   </view>
 
+  <!-- 按钮区域 -->
+  <view class="btn-area">
+    <button class="btn btn-start" catch:tap="microCheckStart" disabled="{{isMeasuring}}">开始测量</button>
+    <button class="btn btn-stop" catch:tap="microCheckStop" disabled="{{!isMeasuring}}">结束测量</button>
+  </view>
+
+  <!-- 说明区域 -->
+  <view class="info-area">
+    <view class="info-title">微体检说明：</view>
+    <view class="info-item">微体检是一次性检测多项健康指标的功能</view>
+    <view class="info-item">检测项目包括：心率、血氧、压力、HRV、血压、体温、血糖、情绪、疲劳度</view>
+    <view class="info-item">测量时请保持静止，确保设备贴合手腕</view>
+    <view class="info-item">测量结果仅供参考，如有异常请咨询医生</view>
+  </view>
 
 </view>

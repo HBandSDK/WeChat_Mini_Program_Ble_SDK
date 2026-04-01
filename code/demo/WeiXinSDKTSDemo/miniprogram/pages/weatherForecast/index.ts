@@ -344,16 +344,14 @@ Page({
   notifyMonitorValueChange() {
     let self = this;
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
-      console.log("天气信息e=>", e)
-
-      if (e.type == 10 && e.content) {
+      if (e.type == 10) {
         let device = e.content;
+        console.log("e=>", e)
         self.setData({
           weatherSwitch: device.switch || e.switch,
           unitSwitch: device.unit == '摄氏度' ? false : true,
         })
       }
-      
     })
   },
 
