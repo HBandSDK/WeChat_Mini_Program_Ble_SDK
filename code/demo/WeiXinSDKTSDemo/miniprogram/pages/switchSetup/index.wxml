@@ -1,57 +1,9 @@
 <view class="box">
-
-  <view class="box-item">
-    <view>心率自动检测</view>
+  <view class="tip">开关禁用表示设备不支持对应开关</view>
+  <view class="box-item" wx:for="{{switchList}}" wx:key="index">
+    <view>{{item.label}}</view>
     <view>
-      <switch checked="{{checkStatus1}}" bindchange="clickValue1" />
-    </view>
-  </view>
-  <view class="box-item">
-    <view>血压自动检测</view>
-    <view>
-      <switch checked="{{checkStatus2}}" bindchange="clickValue2" />
-    </view>
-  </view>
-  <view class="box-item">
-    <view>科学睡眠</view>
-    <view>
-      <switch checked="{{checkStatus3}}" bindchange="clickValue3" />
-    </view>
-  </view>
-  <view class="box-item">
-    <view>体温自动检测</view>
-    <view>
-      <switch checked="{{checkStatus4}}" bindchange="clickValue4" />
-    </view>
-  </view>
-  <view class="box-item">
-    <view>血糖自动检测</view>
-    <view>
-      <switch checked="{{checkStatus5}}" bindchange="clickValue5" />
-    </view>
-  </view>
-  <view class="box-item">
-    <view>血液自动检测</view>
-    <view>
-      <switch checked="{{checkStatus6}}" bindchange="clickValue6" />
-    </view>
-  </view>
-  <view class="box-item">
-    <view>压力自动检测</view>
-    <view>
-      <switch checked="{{checkStatus7}}" bindchange="clickValue7" />
-    </view>
-  </view>
-  <view class="box-item">
-    <view>跌倒提醒</view>
-    <view>
-      <switch checked="{{checkStatus8}}" bindchange="clickValue8" />
-    </view>
-  </view>
-  <view class="box-item">
-    <view>缺氧提醒</view>
-    <view>
-      <switch checked="{{checkStatus9}}" bindchange="clickValue9" />
+      <switch checked="{{item.checked}}" disabled="{{item.disabled}}" data-index="{{index}}" bindchange="onSwitchChange" />
     </view>
   </view>
 </view>

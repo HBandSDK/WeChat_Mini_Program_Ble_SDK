@@ -1497,7 +1497,7 @@ import { veepooFeature } from '../../miniprogram_dist/index'
 
 
 
-#### 读取公英制新增单位
+#### 读取公英制新增单位(开关设置)
 
 ##### 前提
 
@@ -3665,14 +3665,24 @@ veepooFeature.veepooSendResetDataManager()
 注意：开关设置的初始值需要在公英制新增开关返回的两个包中获取
 在全部的开关设置中，血氧自动监测开关，需要在自动监测接口设置
 
+可以参考Demo中 /pages/switchSetup 的实现，如果读取到的开关状态为不支持，则表示对应设备不支持该开关控制，也有可能SDK暂未兼容
+
 ##### 前提
 
 设备设备已连接且支持开关设置功能
 
 ##### 接口
 
+设置接口
+
 ```js
 veepooSendAutoTestSwitchDataManager
+```
+
+读取接口
+
+```js
+veepooSendReadDeviceUnitSettingDataManager
 ```
 
 ##### 传入参数
@@ -3688,6 +3698,7 @@ veepooSendAutoTestSwitchDataManager
 | pressure        | string | 压力开关     |
 | fallWarning     | string | 跌倒提醒开关 |
 | lowOxygen | string | 低氧唤醒 |
+| hrv | string | HRV开关 |
 
 ##### 使用示例
 

@@ -52,6 +52,10 @@ Component({
         path: '/pages/personalInfo/index'
       },
       {
+        name: '开关设置',
+        path: '/pages/switchSetup/index'
+      },
+      {
         name: '日常数据',
         path: '/pages/readDailyData/index'
       },
@@ -174,10 +178,6 @@ Component({
       {
         name: '复位',
         path: 'reset'
-      },
-      {
-        name: '开关设置',
-        path: '/pages/switchSetup/index'
       },
       {
         name: 'android编码',

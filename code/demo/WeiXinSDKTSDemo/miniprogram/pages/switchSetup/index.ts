@@ -1,129 +1,63 @@
 // pages/switchSetup/index.ts
 import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
+
+// 开关配置：label(显示名称), sdkKey(下发指令key), responseKey(设备返回key), pkg(所属包序号)
+const SWITCH_CONFIG = [
+  { label: '心率自动检测', sdkKey: 'heartRate', responseKey: 'VPSettingAutomaticHRTest', pkg: 0 },
+  { label: '血压自动检测', sdkKey: 'bloodPressure', responseKey: 'VPSettingAutomaticBPTest', pkg: 0 },
+  { label: '科学睡眠', sdkKey: 'scientificSleep', responseKey: 'VPSettingAutomaticPPGTest', pkg: 0 },
+  { label: '体温自动检测', sdkKey: 'bodyTemperature', responseKey: 'VPSettingAutomaticTemperatureTest', pkg: 1 },
+  { label: '血糖自动检测', sdkKey: 'bloodGlucose', responseKey: 'VPSettingAutomaticBloodGlucoseTest', pkg: 1 },
+  { label: '血液自动检测', sdkKey: 'bloodComponents', responseKey: 'VPSettingAutomaticBloodCompTest', pkg: 1 },
+  { label: '压力自动检测', sdkKey: 'pressure', responseKey: 'VPSettingPressureFunctionSwitch', pkg: 1 },
+  { label: '跌倒提醒', sdkKey: 'fallWarning', responseKey: 'VPSettingFallWarning', pkg: 1 },
+  { label: '缺氧提醒', sdkKey: 'lowOxygen', responseKey: 'VPSettingOxygenLowerRemind', pkg: 0 },
+  { label: 'HRV自动检测', sdkKey: 'hrv', responseKey: 'VPSettingAutomaticHRVTest', pkg: 0 },
+]
+
 Page({
 
-  /**
-   * 页面的初始数据
-   */
   data: {
-    checkStatus1: false,
-    checkStatus2: false,
-    checkStatus3: false,
-    checkStatus4: false,
-    checkStatus5: false,
-    checkStatus6: false,
-    checkStatus7: false,
-    checkStatus8: false,
+    switchList: SWITCH_CONFIG.map(item => ({
+      label: item.label,
+      checked: false,
+      disabled: true,
+    })),
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
   onShow() {
     this.notifyMonitorValueChange()
+    veepooFeature.veepooSendReadDeviceUnitSettingDataManager()
   },
-  clickValue1(e: any) {
-    console.log("e=>", e)
-    this.setData({
-      checkStatus1: e.detail.value
-    })
-    let data = {
-      heartRate: e.detail.value ? 'start' : 'stop'
-    };
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data);
-  },
-  clickValue2(e: any) {
-    this.setData({
-      checkStatus2: e.detail.value
-    })
-    let data = {
-      bloodPressure: e.detail.value ? 'start' : 'stop'
-    }
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data)
-  },
-  clickValue3(e: any) {
-    this.setData({
-      checkStatus3: e.detail.value
-    })
-    let data = {
-      scientificSleep: e.detail.value ? 'start' : 'stop'
-    }
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data)
-  },
-  clickValue4(e: any) {
-    this.setData({
-      checkStatus4: e.detail.value
-    })
-    let data = {
-      bodyTemperature: e.detail.value ? 'start' : 'stop'
-    }
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data)
-  },
-  clickValue5(e: any) {
-    this.setData({
-      checkStatus5: e.detail.value
-    })
-    let data = {
-      bloodGlucose: e.detail.value ? 'start' : 'stop'
-    }
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data)
-  },
-  clickValue6(e: any) {
-    this.setData({
-      checkStatus6: e.detail.value
-    })
-    let data = {
-      bloodComponents: e.detail.value ? 'start' : 'stop'
-    }
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data);
-  },
-  clickValue7(e: any) {//压力
-    this.setData({
-      checkStatus7: e.detail.value
-    })
-    let data = {
-      pressure: e.detail.value ? 'start' : 'stop'
-    }
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data)
-  },
-  clickValue8(e: any) {
-    this.setData({
-      checkStatus8: e.detail.value
-    })
-    let data = {
-      fallWarning: e.detail.value ? 'start' : 'stop'
-    }
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data)
-  },
-  clickValue9(e: any) {
-    this.setData({
-      checkStatus9: e.detail.value
-    })
-    let data = {
-      lowOxygen: e.detail.value ? 'start' : 'stop'
-    }
-    veepooFeature.veepooSendAutoTestSwitchDataManager(data)
-  },
-  // 监听订阅 notifyMonitorValueChange
-  notifyMonitorValueChange() {
-    let self = this;
-    veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
-      console.log("  监听蓝牙回调=>", e);
+
+  onSwitchChange(e: any) {
+    const index = e.currentTarget.dataset.index
+    const value = e.detail.value
+    this.setData({ [`switchList[${index}].checked`]: value })
+    veepooFeature.veepooSendAutoTestSwitchDataManager({
+      [SWITCH_CONFIG[index].sdkKey]: value ? 'start' : 'stop'
     })
   },
 
+  notifyMonitorValueChange() {
+    const self = this
+    veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
+      if (e.type == 11) {
+        console.log('公英制新增开关回调=>', e)
+        const content = e.content
+        if (!content) return
+
+        const updateData: Record<string, boolean> = {}
+        SWITCH_CONFIG.forEach((item, index) => {
+          if (item.pkg !== e.package) return
+          const value = content[item.responseKey]
+          if (value !== undefined) {
+            updateData[`switchList[${index}].checked`] = value === 'open'
+            updateData[`switchList[${index}].disabled`] = value === 'noThisFeature'
+          }
+        })
+        self.setData(updateData)
+      }
+    })
+  },
 })
