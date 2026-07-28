@@ -69,17 +69,18 @@ Page({
   startTest() {
 
     let self = this;
+
     let data = {
       switch: self.data.deviceSwitch ? 'start' : 'stop',// 开关  start  开启  stop 关闭
       startTime: self.data.startTime,// 开始时间
       endTime: self.data.endTime,// 结束时间
       deviceControl: 'setup',// setup 设置 read 读取
     }
-
     console.log("data=>", data)
     veepooFeature.veepooSendBloodOxygenAutoTestDataManager(data);
     
   },
+  
   readAllDayTest(e: any) {
     let index = e.currentTarget.dataset.index
     let data = {
@@ -88,23 +89,30 @@ Page({
     }
     console.log("data==>",data)
     veepooFeature.veepooSendReadAllDayBloodOxygenDataManager(data);
-  },
+  }, 
+
   readTest() {
     let self = this;
+
     let data = {
       switch: self.data.deviceSwitch ? 'start' : 'stop',
       startTime: self.data.startTime,// 开始时间
       endTime: self.data.endTime,// 结束时间
       deviceControl: 'read'
     }
+
     console.log("data=>", data)
+
     veepooFeature.veepooSendBloodOxygenAutoTestDataManager(data);
+
   },
+
   // 监听订阅 notifyMonitorValueChange
   notifyMonitorValueChange() {
     let self = this;
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
       console.log("监听蓝牙回调=>", e);
+
       if (e.type == 29) {
         self.setData({
           startTime:e.content.startTime,
@@ -118,6 +126,9 @@ Page({
           device: e
         })
       }
+
+
     })
   },
 })
+

@@ -28,22 +28,21 @@ Page({
   /**
    * 生命周期函数--监听页面显示
    */
-  onShow() {
-    this.notifyMonitorValueChange();
-
-  },
+  // onShow() {
+  //   this.notifyMonitorValueChange();
+  // },
   // 无参数
   ECGmeasureStartDataManager() {
+    this.notifyMonitorValueChange();
     veepooFeature.veepooSendECGmeasureStartDataManager();
   },
   ECGmeasureStopDataManager() {
+
     veepooFeature.veepooSendECGmeasureStopDataManager();
   },
   // 监听订阅 notifyMonitorValueChange
   notifyMonitorValueChange() {
     let self = this;
-    // veepooWeiXinSDKNotifyMonitorValueChange
-    // veepooWeiXinSDKNotifyECGValueChange
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
       console.log(" ECG 主服务蓝牙回调=>", e);
       if (e.type == 2000) {

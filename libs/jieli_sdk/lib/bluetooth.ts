@@ -139,7 +139,7 @@ class ScanImpl implements IScan {
   private _callbacks: Array<ScanCallback> = new Array<ScanCallback>()
   constructor() {
     setTagEnable(this._tag, false)
-    this._platform = wx.getSystemInfoSync().platform
+    this._platform = wx.getSystemInfo().platform
     this._scanSettingConfigure = new ScanSettingConfigure()
   }
   getScanSettingConfigure(): ScanSettingConfigure {
@@ -532,9 +532,35 @@ class ConnectImpl implements IConnect {
    * 连接设备
    */
   public connectDevice(device: BluetoothDevice, connectCallback: ConnectCallback): boolean {
-    let result = false
     this._addConnectingDeviceId(device)
     this._connectCallbacks.set(device.deviceId, connectCallback)
+
+    // 杰理侧已记录连接，直接 MTU+服务发现
+    if (this.isConnected(device)) {
+      this._negotiateMTUAndDiscover(device)
+      return true
+    }
+
+    // 鸿蒙(ohos)上对系统已连接的设备(如被 veepoo SDK 连接)再调 createBLEConnection 会直接失败(status=3)，
+    // 表现为 OTA 页首次接管失败、点升级提示"请先连接设备"。先查系统是否已连接，已连接则跳过建连直接 MTU+服务发现。
+    wx.getConnectedBluetoothDevices({
+      services: [],
+      success: (res) => {
+        const sysConnected = (res.devices || []).some(d => d.deviceId === device.deviceId)
+        if (sysConnected) {
+          console.log('系统已连接，跳过 createBLEConnection 直接 MTU+服务发现：' + device.deviceId)
+          this._negotiateMTUAndDiscover(device)
+        } else {
+          this._doCreateBLEConnection(device)
+        }
+      },
+      fail: () => {
+        this._doCreateBLEConnection(device)
+      }
+    })
+    return true
+  }
+  private _doCreateBLEConnection(device: BluetoothDevice) {
     const connectOption: WechatMiniprogram.CreateBLEConnectionOption = {
       deviceId: device.deviceId
     }
@@ -542,118 +568,57 @@ class ConnectImpl implements IConnect {
       connectOption.timeout = this._connectConfigure.timeout
     }
     connectOption.success = () => {
-      if (this._platform == 'android') {
-        wx.setBLEMTU({//怀疑并发的时候会mtu混乱
-          deviceId: device.deviceId,
-          mtu: this._connectConfigure.mtu,
-
-          success: res => {
-            logv('调节MTU成功，' + res.mtu, this._tag);
-            this._updateDeviceIdMtu(device.deviceId, res.mtu)
-            this._onMTUChange(device, res.mtu)
-            this._getBLEDeviceServices(device);
-            // this._registerConnStatusListener()
-          },
-          fail: (res) => {
-
-            wx.getBLEMTU({
-              writeType: "writeNoResponse",
-              deviceId: device.deviceId, success: res => {
-                logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
-                this._updateDeviceIdMtu(device.deviceId, res.mtu)
-                this._onMTUChange(device, res.mtu)
-                this._getBLEDeviceServices(device);
-                // this._registerConnStatusListener()
-              }, fail: res => {
-                loge('调节MTU失败，' + JSON.stringify(res), this._tag);
-                this.disconnect(device)
-                const error: BluetoothError = {
-                  errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
-                  errMsg: 'connection fail'
-                }
-                this._onConnectFailed(device, error)
-              }
-            })
-          }
-        })
-      } else {
-        // 延时，否则可能存在问题
-        setTimeout(() => {
-          wx.getBLEMTU({
-            writeType: "writeNoResponse",// 写入不回复，删除ios无法通过
-            deviceId: device.deviceId, success: res => {
-              logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
-              this._updateDeviceIdMtu(device.deviceId, res.mtu)
-              this._onMTUChange(device, res.mtu)
-              this._getBLEDeviceServices(device);
-              // this._registerConnStatusListener()
-            }, fail: res => {
-              loge('调节MTU失败，' + JSON.stringify(res), this._tag);
-              this.disconnect(device)
-              const error: BluetoothError = {
-                errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
-                errMsg: 'connection fail'
-              }
-              this._onConnectFailed(device, error)
-            }
-          })
-        }, 1000);
-      }
+      this._negotiateMTUAndDiscover(device)
     }
     connectOption.fail = (e) => {
       loge('连接失败，' + e.errCode, this._tag);
-      if (this.isConnecting(device)) {
-        // loge('连接失败，已在 onBLEConnectionStateChange 处理，所以不做回调');
+      if (e.errCode == -1) {
+        // 设备已连接（可能被 veepoo SDK 连接），直接走服务发现
+        this._negotiateMTUAndDiscover(device)
+      } else if (this.isConnecting(device)) {
         return;
       } else {
         this._onConnectFailed(device, e)
       }
     }
+    console.log("========杰里开始连接=========");
+    wx.createBLEConnection(connectOption)
+  }
 
-
-    let vp_connected_verify = wx.getStorageSync("vp_connected_verify");
-
-    // 后续新增
-    if (vp_connected_verify) {
-      wx.setStorageSync("vp_connected_verify", false);
-
-      if (this._platform == 'android') {
-        wx.setBLEMTU({//怀疑并发的时候会mtu混乱
-          deviceId: device.deviceId,
-          mtu: this._connectConfigure.mtu,
-
-          success: res => {
-            logv('调节MTU成功，' + res.mtu, this._tag);
+  /** MTU 协商 + 服务发现 */
+  private _negotiateMTUAndDiscover(device: BluetoothDevice) {
+    if (this._platform == 'android' || this._platform == 'ohos') {
+      wx.setBLEMTU({
+        deviceId: device.deviceId,
+        mtu: this._connectConfigure.mtu,
+        success: res => {
+          logv('调节MTU成功，' + res.mtu, this._tag);
+          if (res.mtu != undefined) {
             this._updateDeviceIdMtu(device.deviceId, res.mtu)
             this._onMTUChange(device, res.mtu)
             this._getBLEDeviceServices(device);
-            // this._registerConnStatusListener()
-          },
-          fail: (res) => {
-
+          } else {
+            // 鸿蒙(ohos)上 setBLEMTU 成功但不回传 res.mtu，若按 undefined 处理会导致发送分包退化为20字节、
+            // OTA 大数据传输时设备收不全 -> 触发 -111(SDK timed out waiting for a command)。这里再用 getBLEMTU 读取真实协商值。
             wx.getBLEMTU({
+              deviceId: device.deviceId,
               writeType: "writeNoResponse",
-              deviceId: device.deviceId, success: res => {
-                logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
-                this._updateDeviceIdMtu(device.deviceId, res.mtu)
-                this._onMTUChange(device, res.mtu)
-                this._getBLEDeviceServices(device);
-                // this._registerConnStatusListener()
-              }, fail: res => {
-                loge('调节MTU失败，' + JSON.stringify(res), this._tag);
-                this.disconnect(device)
-                const error: BluetoothError = {
-                  errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
-                  errMsg: 'connection fail'
+              success: r => {
+                logv('getBLEMTU 读取真实MTU：' + r.mtu, this._tag);
+                if (r.mtu != undefined) {
+                  this._updateDeviceIdMtu(device.deviceId, r.mtu)
+                  this._onMTUChange(device, r.mtu)
                 }
-                this._onConnectFailed(device, error)
+                this._getBLEDeviceServices(device);
+              },
+              fail: r => {
+                loge('getBLEMTU 读取失败：' + JSON.stringify(r), this._tag);
+                this._getBLEDeviceServices(device); // 不阻断连接，继续服务发现（发送退回20字节）
               }
             })
           }
-        })
-      } else {
-
-        setTimeout(() => {
+        },
+        fail: () => {
           wx.getBLEMTU({
             writeType: "writeNoResponse",
             deviceId: device.deviceId, success: res => {
@@ -661,7 +626,6 @@ class ConnectImpl implements IConnect {
               this._updateDeviceIdMtu(device.deviceId, res.mtu)
               this._onMTUChange(device, res.mtu)
               this._getBLEDeviceServices(device);
-              // this._registerConnStatusListener()
             }, fail: res => {
               loge('调节MTU失败，' + JSON.stringify(res), this._tag);
               this.disconnect(device)
@@ -672,18 +636,29 @@ class ConnectImpl implements IConnect {
               this._onConnectFailed(device, error)
             }
           })
-        }, 1000);
-
-      }
-
+        }
+      })
     } else {
-      console.log("========杰里开始重连=========");
-      wx.setStorageSync("vp_connected_verify", true);
-
-      wx.createBLEConnection(connectOption)
+      setTimeout(() => {
+        wx.getBLEMTU({
+          writeType: "writeNoResponse",
+          deviceId: device.deviceId, success: res => {
+            logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
+            this._updateDeviceIdMtu(device.deviceId, res.mtu)
+            this._onMTUChange(device, res.mtu)
+            this._getBLEDeviceServices(device);
+          }, fail: res => {
+            loge('调节MTU失败，' + JSON.stringify(res), this._tag);
+            this.disconnect(device)
+            const error: BluetoothError = {
+              errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
+              errMsg: 'connection fail'
+            }
+            this._onConnectFailed(device, error)
+          }
+        })
+      }, 1000);
     }
-    // wx.createBLEConnection(connectOption)
-    return result
   }
   /** 断开已连接设备 */
   public disconnect(device: BluetoothDevice): void {

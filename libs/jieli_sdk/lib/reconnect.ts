@@ -36,8 +36,9 @@ export class Reconnect {
   }
   //上层扫描暂停通知
   onScanStop() {
-    console.error("上层扫描暂停通知 : " + this.isFinishedReconnect());
-    if (!this.isFinishedReconnect()) {
+    // 仅在未锁定设备连接、未完成时重启扫描。否则 connectDevice 内部的 stopScan 会被这里再次重启扫描，
+    // 鸿蒙 allowDuplicatesKey 反复上报同一设备 -> 反复触发 isReconnectDevice/connectDevice -> 死循环日志爆炸崩溃
+    if (!this.isFinishedReconnect() && this.connectingDevice == undefined) {
       this.reconnectOp?.startScanDevice();
     }
   }
@@ -49,14 +50,12 @@ export class Reconnect {
   }
   //上层扫描发现设备
   onDiscoveryDevice(device: BluetoothDevice) {
-    if (!this.isFinishedReconnect()) {
-      if (this.reconnectOp?.isReconnectDevice(device)) {
-        this.onScanStop()
-        console.log("上层扫描发现设备device=>", device);
-        this.connectingDevice = device
-        console.log(" this.reconnectOp=>", this.reconnectOp)
-        this.reconnectOp?.connectDevice(device)
-      }
+    if (this.isFinishedReconnect()) return
+    if (this.connectingDevice != undefined) return // 已锁定一个设备在连接，忽略后续重复扫描回调(鸿蒙会反复上报同一设备)
+    if (this.reconnectOp?.isReconnectDevice(device)) {
+      console.log("上层扫描发现设备device=>", device);
+      this.connectingDevice = device
+      this.reconnectOp?.connectDevice(device) // 内部会 stopScan，不再调 onScanStop(那会重启扫描形成死循环)
     }
   }
   //上层连接设备成功-

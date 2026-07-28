@@ -41,7 +41,7 @@
 <view class="item-containt">
     <view class="part-title">自定义表盘背景列表</view>
     <block wx:for="{{customBackgroundList}}" wx:key="index">
-        <view class="item-line-view"  data-index="{{index}}" catchtap="_dialOperateSetDialCustomBackground">
+        <view class="item-line-view"  data-index="{{index}}" catchtap="clickDialBackground">
             <view class="l">
                 <image class="item-icon" src="../../image/icon_setting.png"></image>
                 <text>{{item.name}}</text>

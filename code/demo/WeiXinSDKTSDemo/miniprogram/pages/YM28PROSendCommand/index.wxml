@@ -1,0 +1,44 @@
+<!--pages/YM28PROSendCommand/index.wxml-->
+<view>
+
+  <button style="margin-top: 20px;" catch:tap="readCurrentDevState">读取当前设备数据情况</button>
+
+
+  <view class="section">
+    <picker bindchange="bindPickerChange1" value="{{index}}" range="{{bloodPressureSwitchArray}}">
+      <view class="picker">
+       血压开关：{{bloodPressureSwitchArray[index]}}
+      </view>
+    </picker>
+  </view>
+  <view class="input">
+    <text>白天间隔：</text>
+    <input type="number" name="height" placeholder="传入要求[15/20/30/60]" bindinput="inputChange"/>
+    <text>默认30</text>
+  </view>
+  <view class="input">
+    <text>夜间间隔：</text>
+    <input type="number" name="height" placeholder="传入要求[30/60]" bindinput="inputChange1" />
+    <text>默认60</text>
+  </view>
+  <view class="section">
+    <picker mode="time" value="{{nightRangeStartTime}}" bindchange="bindPickerChange2">
+      <view class="picker">
+        夜间范围开始时间选择: {{nightRangeStartTime}}
+      </view>
+    </picker>
+  </view>
+  <view class="section">
+    <picker mode="time" value="{{nightRangeEndTime}}" bindchange="bindPickerChange3">
+      <view class="picker">
+        夜间范围结束时间选择: {{nightRangeEndTime}}
+      </view>
+    </picker>
+  </view>
+
+  <button style="margin-top: 20px;" catch:tap="setupCommandData">下发数据</button>
+  <view style="padding: 20px;">
+  <view>当前SN码：{{SNCode}}</view>
+  </view>
+  <button style="margin-top: 20px;" catch:tap="readSNCode">读取SN码</button>
+</view>

@@ -34,7 +34,7 @@ export const veepooJLGetFileDataManager = function (tempFilePaths: any, callback
       })
       let uint8 = new Uint8Array(res.size);
 
-      console.log("fd 内容=>", fd);
+      // console.log("fd 内容=>", fd);
       fs.read({
         fd: fd,
         arrayBuffer: uint8.buffer,
@@ -299,13 +299,16 @@ export const veepooJLGetDialBackgroundManager = (file: OPDirectoryBrowse.File, c
 export const veepooJLAuthenticationManager = function (device: any, callback: any) {
   wx.getSystemInfo({
     success(system) {
-      if (system.platform === 'android') {
-        wx.setBLEMTU({//怀疑并发的时候会mtu混乱 
+      const platform = system.platform
+      console.log("当前平台：" + platform)
+      
+      if (platform === 'android' || platform === 'ohos') {
+        wx.setBLEMTU({
           deviceId: device.deviceId,
           writeType: "writeNoResponse",
           mtu: 512,
           success: res => {
-            console.log("第一个res=>", res)
+            console.log(platform + " 设置MTU成功，res=>", res)
             let value = {
               device: device,
               mtu: res.mtu
@@ -318,10 +321,11 @@ export const veepooJLAuthenticationManager = function (device: any, callback: an
 
           },
           fail: (res) => {
+            console.log(platform + " 设置MTU失败，尝试获取MTU，res=>", res);
             wx.getBLEMTU({
               writeType: "writeNoResponse",
               deviceId: device.deviceId, success: res => {
-                console.log("第二个res=>", res);
+                console.log(platform + " 获取MTU成功，res=>", res);
                 let value = {
                   device: device,
                   mtu: 244
@@ -337,6 +341,7 @@ export const veepooJLAuthenticationManager = function (device: any, callback: an
             })
           }
         })
+
 
 
       } else {

@@ -17,6 +17,24 @@
 
   </view>
   <view class="ecg-item">测试进度：{{device && device.progress}}%</view>
+
+
+
   <button class="btn" catch:tap="ECGmeasureStartDataManager">开启测试</button>
   <button class="btn" catch:tap="ECGmeasureStopDataManager">关闭测试</button>
+
+
+  <scroll-view class="myScoll" scroll-x>
+  <view>
+    <view class="box1">
+      <canvas canvas-id="ecg" style="width: 5000px; height: 300px;"></canvas>
+    </view>
+    <view class="box2">
+      <canvas canvas-id="myCanvas" style="width: 5000px; height: 300px;"></canvas>
+
+    </view>
+  </view>
+</scroll-view>
+
+
 </view>

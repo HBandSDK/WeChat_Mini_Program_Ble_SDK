@@ -114,13 +114,13 @@ Page({
       timeColor: [r, g, b]
     }
     console.log("value=>", value)
-    // veepooFeature.veepooSendSetupCustomBackgroundDialDataManager(value)
+    veepooFeature.veepooSendSetupCustomBackgroundDialDataManager(value)
   },
   readCustomBackground() {
     let data = {
       type:2
     }
-    // veepooFeature.veepooSendReadCustomBackgroundDailManager(data)
+    veepooFeature.veepooSendReadCustomBackgroundDailManager(data)
   },
   getDialInfo() {
     let self = this;
@@ -140,6 +140,16 @@ Page({
     })
   },
 
+    // 切换自定义背景
+    switchCustomBg() {
+      let value = {
+        control: 1,// 设置 1 读取 
+        style: 0, // 风格
+        styleType: 2 // 0 默认表盘 1 表盘市场  2 自定义表盘
+      }
+      console.log("value=>", value)
+      veepooFeature.veepooSendSwitchCustomBGUIDialManager(value);
+    },
   // 
 
   bindPickerChange1: function (e: any) {

@@ -2,8 +2,6 @@
   <view class="top-buttom">
     <view class="buttom" catch:tap="skipDeviceGet">设备扫描</view>
     <view class="buttom buttom-active {{ connected ? 'active' : '' }}" catch:tap="closeBluetoothAdapterManager">断开连接</view>
-    <!-- <view class="buttom" catch:tap="getF003">获取F003</view> -->
-    <!-- <view class="buttom buttom-active" catch:tap="connectBle2">重新连接</view> -->
   </view>
   <!-- 显示设备相关信息 -->
   <view class="deviceInfo" catch:tap="blePwd">

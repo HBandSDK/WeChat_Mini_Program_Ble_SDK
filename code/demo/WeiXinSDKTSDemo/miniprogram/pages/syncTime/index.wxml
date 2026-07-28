@@ -1,5 +1,24 @@
 <view class="sync-time">
 
+  <view class="box-mode-state">
+    <view class="section">
+      <picker mode="date" value="{{date}}" bindchange="bindDateChange">
+        <view class="picker">
+          日期选择: {{date}}
+        </view>
+      </picker>
+    </view>
+    <view class="section">
+      <picker mode="time" value="{{time}}" bindchange="bindTimeChange">
+        <view class="picker">
+          时间选择: {{time}}
+        </view>
+      </picker>
+    </view>
+
+  </view>
+
+
   <button style="margin: 30rpx auto; " catch:tap="bindSyncTime">同步时间</button>
 
 </view>

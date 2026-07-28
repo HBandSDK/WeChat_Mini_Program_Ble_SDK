@@ -16,7 +16,7 @@
   <view>
 
   </view>
-  <!-- <view class="ecg-item">测试进度：{{device && device.progress}}%</view> -->
-  <!-- <button class="btn" catch:tap="ECGmeasureStartDataManager">开启测试</button> -->
-  <!-- <button class="btn" catch:tap="ECGmeasureStopDataManager">关闭测试</button> -->
+  <view class="ecg-item">测试进度：{{device && device.progress}}%</view>
+  <button class="btn" catch:tap="ECGmeasureStartDataManager">开启测试</button>
+   <button class="btn" catch:tap="ECGmeasureStopDataManager">关闭测试</button>
 </view>

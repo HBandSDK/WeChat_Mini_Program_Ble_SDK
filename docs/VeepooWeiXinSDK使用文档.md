@@ -95,7 +95,7 @@ if (veepooLogger.isLevelEnabled(veepooLogger.LEVEL.DEBUG)) {
 [VeepooSDK][DEBUG] 初始化蓝牙成功
 [VeepooSDK][DEBUG] 开始扫描设备...
 [VeepooSDK][WARN] 设置失败，没有此功能
-[VeepooSDK][ERROR] 设备秘钥认证不成功，请先认证！
+[VeepooSDK][ERROR] 设备密钥认证不成功，请先认证！
 ```
 
 ### 注意事项
@@ -404,11 +404,11 @@ console.log("e=>",e)
 
 ## **功能接口说明**
 
-功能接口需要进行秘钥认证后才能正常使用，否则返回错误信息
+功能接口需要进行密钥认证后才能正常使用，否则返回错误信息
 
 
 
-### 秘钥认证
+### 密钥认证
 
 ##### 前提
 
@@ -441,7 +441,7 @@ veepooFeature.veepooBlePasswordCheckManager();
 
 
 
-#### 功能汇总（秘钥认证返回）
+#### 功能汇总（密钥认证返回）
 
 ##### 第一包
 
@@ -732,8 +732,8 @@ mg/dl
 
 ```js
 {
-  name:"蓝牙秘钥核准",
-  type:1,// type 等于1 表示蓝牙秘钥核准回调
+  name:"蓝牙密钥核准",
+  type:1,// type 等于1 表示蓝牙密钥核准回调
   content: {
     VPDevicepassword, 
     VPDeviceAck, // 核验结果
@@ -938,7 +938,7 @@ content:{
           sleepEfficiencyScore, // 睡眠效率得分
           fallAsleepEfficiencyScore, // 入睡效率得分
           sleepTimeScore, // 睡眠时长得分
-          sleepQuality, //睡眠质量
+          sleepQuality, //睡眠质量，0～4，对应G Band APP中的1～5🌟；
           deepSleepTime, // 深睡时长
           lightSleepTime, // 浅睡时长
           otherSleepTime, // 其他睡眠时长
@@ -1006,6 +1006,9 @@ Progress:100,// 读取进度 1-100%
 name:"读取日常数据",
 type:5,// type 等于5表示日常数据回调
 content:{
+  // 当前包的位数
+  let currentPackageNum = 106,
+  // 日期相关
    let date = ''
   //  计步相关 stepCount 步 数  amountOfExercise  运动量 distance 距离 calorie,卡路里 wear 佩戴
   let step = ''
@@ -3029,6 +3032,10 @@ veepooFeature.veepooSendBloodGlucoseCalibrateModuleDataManager(data);
 
 ### 血糖6个值校准模式（血糖私人模式）
 
+#### 设置血糖6个校准值
+
+设置早餐、午餐、晚餐的餐前和餐后的校准值
+
 
 ##### 前提
 
@@ -3053,11 +3060,23 @@ veepooSendSixBloodGlucoseCalibrateValueDataManager
 | conSwitch       | string | start 开启 stop 关闭 |
 | switch          | string | setup 设置 read 读取 |
 
-| 六个参数Object子项 | 类型   | 备注   |
-| ------------------ | ------ | ------ |
-| hour               | string | 小时   |
-| minute             | string | 分钟   |
-| bloodGlucoseValue  | string | 血糖值 |
+| 六个参数Object子项 | 类型   | 备注                                                |
+| ------------------ | ------ | --------------------------------------------------- |
+| hour               | string | 小时                                                |
+| minute             | string | 分钟                                                |
+| bloodGlucoseValue  | string | 血糖值 **取值范围**：毫摩尔/升(默认) **[3.0,15.0]** |
+
+##### 补充说明（重点）
+
+1. **餐前与餐后时间校验**
+   在设置早餐、午餐、晚餐的餐前及餐后时间时，必须确保**餐前时间早于餐后时间**。若餐前时间晚于或等于餐后时间，系统将视为无效配置，无法正确记录时间参数及对应的校准值。
+
+2. **血糖值单位与取值范围**
+   接口统一要求血糖值以**毫摩尔/升（mmol/L）**为单位，且数值必须在 **[3.0, 15.0]** 范围内。
+
+   若原始数据为毫克/分升（mg/dL），需先按公式 **mg/dL = mmol/L × 18** 进行换算，确保换算后的值落在 **[54, 270]** 范围内；
+
+   换算完成后，**最终传入接口时，必须再次转换回 mmol/L 单位，并确保值在 [3.0, 15.0] 之间**。
 
 ##### 使用示例
 
@@ -3069,33 +3088,87 @@ import { veepooFeature } from '../../miniprogram_dist/index'
   beforeBreakfast: {
     hour: '08',
     minute: '00',
-    bloodGlucoseValue: 5.5
+    bloodGlucoseValue: 5.5 // 取值范围：毫摩尔/升[3.0,15.0]
   },
   afterBreakfast: {
     hour: '09',
     minute: '00',
-    bloodGlucoseValue: 7.5
+    bloodGlucoseValue: 7.5// 取值范围：毫摩尔/升 [3.0,15.0]
   },
   beforeLunch: {
     hour: '12',
     minute: '00',
-    bloodGlucoseValue: 5.0
+    bloodGlucoseValue: 5.0// 取值范围：毫摩尔/升[3.0,15.0]
   },
   afterLunch: {
     hour: '13',
     minute: '00',
-    bloodGlucoseValue: 7.5
+    bloodGlucoseValue: 7.5// 取值范围：毫摩尔/升 [3.0,15.0]
   },
   beforeDinner: {
     hour: '18',
     minute: '00',
-    bloodGlucoseValue: 6.5
+    bloodGlucoseValue: 6.5// 取值范围：毫摩尔/升 [3.0,15.0]
   },
   afterDinner: {
     hour: '19',
     minute: '00',
-    bloodGlucoseValue: 7.5
+    bloodGlucoseValue: 7.5// 取值范围：毫摩尔/升 [3.0,15.0]
   }
+}
+veepooFeature.veepooSendSixBloodGlucoseCalibrateValueDataManager(data);
+```
+
+##### 回调
+
+| 参数      | 类型   | 备注                 |
+| --------- | ------ | -------------------- |
+| name      | string | 描述                 |
+| type      | number | 类型描述22           |
+| deviceAck | string | 设置/读取状态        |
+| switch    | string | setup 设置 read 读取 |
+
+
+```js
+{
+  "name": "血糖6个校准模式",
+  "type": 22, 
+  "deviceAck": "successful",
+  "switch": "setup"
+}
+```
+
+------
+
+#### 读取血糖6个校准值
+
+读取当前设备早餐、午餐、晚餐的餐前和餐后的校准值
+
+
+##### 前提
+
+设备已连接，且设备支持血糖私人模式
+
+##### 接口
+
+```js
+veepooSendSixBloodGlucoseCalibrateValueDataManager
+```
+
+##### 传入参数
+
+| 参数      | 类型   | 备注                 |
+| --------- | ------ | -------------------- |
+| conSwitch | string | start 开启 stop 关闭 |
+| switch    | string | setup 设置 read 读取 |
+
+##### 使用示例
+
+```js
+import { veepooFeature } from '../../miniprogram_dist/index' 
+ let data = {
+  conSwitch: 'start', // start 开启  stop 关闭
+  switch: 'read', // setup 设置 read 读取
 }
 veepooFeature.veepooSendSixBloodGlucoseCalibrateValueDataManager(data);
 ```
@@ -3112,18 +3185,6 @@ veepooFeature.veepooSendSixBloodGlucoseCalibrateValueDataManager(data);
 
 
 ```js
-
-// 设置
-{
-
-  "name": "血糖6个校准模式",
-  "type": 22, 
-  "deviceAck": "successful",
-  "switch": "setup"
-
-}
-
-// 读取
 {
   "name": "血糖6个校准模式",
    "type": 22,
@@ -3131,6 +3192,7 @@ veepooFeature.veepooSendSixBloodGlucoseCalibrateValueDataManager(data);
      "switch": "read",
       "content": {
         "calibrationSwitch":"start",// start 开启 stop 关闭
+         // 注意:回调数据返回的bloodGlucoseValue的数据格式是毫摩尔/升，若是要用毫克/方升则需要将获取到的数据乘以18
         "beforeBreakfast": {"hour": "08", "minute": "00", "bloodGlucoseValue": 5.5},// 早餐前
         "afterBreakfast": {"hour": "09", "minute": "00", "bloodGlucoseValue": 7.5}, // 早餐后
         "beforeLunch": {"hour": "12", "minute": "00", "bloodGlucoseValue": 5}, // 午餐前
@@ -3139,7 +3201,6 @@ veepooFeature.veepooSendSixBloodGlucoseCalibrateValueDataManager(data);
         "afterDinner": {"hour": "19", "minute": "00", "bloodGlucoseValue": 7.5}// 晚餐后
         }
 }
-
 ```
 
 ------
@@ -5723,6 +5784,78 @@ veepooFeature.veepooReadTestModeOrigDataManager(data);
 
 ```
 
+#### 实时测量PPG数据
+
+##### 前提
+
+设备已连接，且设备数据JH58定制项目
+
+##### 接口
+
+```
+veepooJH58RealTimeMeasureManager
+```
+
+##### 参数
+
+| 参数  | 类型   | 备注                                                    |
+| ----- | ------ | ------------------------------------------------------- |
+| state | number | 1 开启测量且实时传输   2  开启测量且断点传输  3关闭测量 |
+
+补充：
+
+state=2时，适用与蓝牙断连重连后，设备推送本次测量断联前5分钟数据后再衔接实时上报
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+    let data = {
+      state: 1,// 1 开启测量且实时传输   2  开启测量且断点传输  3关闭测量
+    }
+veepooFeature.veepooJH58RealTimeMeasureManager(data);
+```
+
+##### 回调
+
+设置开关后的回调
+
+```js
+{
+    name: "PPG实时测量开关控制",
+    type: 60,
+    control: 1,//  1开关控制模式 2 读取数据模式
+    mode: 1, // 1 开启测量   2 开启断点传输  3关闭测量
+    content:{
+        state:'成功' //开关设置状态说明：1.成功 2.设备正在手动测量，设备正忙 3.设备处于低电状态
+    }
+}
+```
+
+读取数据回调
+
+```javascript
+{
+    name: "PPG实时测量",
+    type: 60,
+    control: 2,// 1开关控制模式 2 读取数据模式
+    mode: 3, // 3模式3
+    content:{
+        data:{
+            acceleration：{
+                x:[],// x轴
+                y:[],// y轴
+            	z:[],// z轴
+            }，// 加速度
+            ppgData:[],// 每秒的ppg原始数据
+        }，
+        crc:38386,// crc
+        timeStamp:1765814400,// 当前数据时间戳
+    }
+}
+
+```
+
 
 
 #### ZT163常灭屏功能
@@ -5919,6 +6052,169 @@ veepooFeature.veepooSendPressureTestManager(data)
         pressure: 23 // 压力值 
       }
 }
+```
+
+
+
+
+
+### YM28PRO项目相关接口
+
+
+
+#### 读取设备当前数据情况
+
+##### 前提
+
+设备已连接，且设备支持YM28PRO项目
+
+##### 接口
+
+```
+veepooSetupSendYM28PROCommandManager
+```
+
+##### 参数
+
+| 参数   | 类型   | 备注                                                         |
+| ------ | ------ | ------------------------------------------------------------ |
+| switch | String | 操作类型 read 读取当前设备数据 setup 下发数据  readSN 读取SN码 |
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+    let data = {
+      switch: 'read',
+    }
+veepooFeature.veepooSetupSendYM28PROCommandManager(data);
+```
+
+##### 回调
+
+```javascript
+{
+    name: "设置数据读取及下发",
+    type: 58,
+    control: 1,//  1 读取当前设备数据模式  2 下发数据模式 3 读取SN码模式 
+    content: {
+      authorizationStartTimestamp: 1780737576, //授权开始的时间戳
+      bloodPressureSwitch: 0, // 血压开关：0: 开启 / 1: 关闭 
+      dayTimeGap: 30 , // 白天间隔数（单位：分钟）：15/20/30/60
+      nightTimeGap: 60, // 夜间间隔数（单位：分钟）：15/20/30/60
+      gapMinValue: 10, //间隔范围最小值(单位：分钟)
+      gapMaxValue: 180, //间隔范围最大值(单位：分钟)
+      stepCount: 5, //步进数
+      nightRangeEndTime: "23:30", // 夜间范围结束时间
+      nightRangeStartTime: "17:00",// 夜间范围开始时间
+   }
+ }
+
+```
+
+
+
+#### 下发数据
+
+##### 前提
+
+设备已连接，且设备支持YM28PRO项目
+
+##### 接口
+
+```
+veepooSetupSendYM28PROCommandManager
+```
+
+##### 参数
+
+| 参数                | 类型   | 备注                                                         |
+| ------------------- | ------ | ------------------------------------------------------------ |
+| switch              | string | 操作类型 read 读取当前设备数据 setup 下发数据  readSN 读取SN码 |
+| bloodPressureSwitch | String | 血压开关：open 开启 close 关闭                               |
+| dayTimeGap          | number | 白天间隔数（单位：分钟）：15/20/30/60                        |
+| nightTimeGap        | number | 夜间间隔数（单位：分钟）：15/20/30/60                        |
+| nightRangeStartTime | String | 夜间范围开始时间   "小时:分钟"                               |
+| nightRangeEndTime   | String | 夜间范围结束时间   "小时:分钟"                               |
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+    let data = {
+      switch: 'setup',
+      content: {
+        bloodPressureSwitch: 'close', // 血压开关：open 开启 close 关闭
+        dayTimeGap: 30 , // 白天间隔数（单位：分钟）：15/20/30/60
+        nightTimeGap: 60, // 夜间间隔数（单位：分钟）：15/20/30/60
+        nightRangeEndTime: "23:30", // 夜间范围结束时间
+        nightRangeStartTime: "17:00",// 夜间范围开始时间
+      }
+    }
+veepooFeature.veepooSetupSendYM28PROCommandManager(data);
+```
+
+##### 回调
+
+```javascript
+{
+    name: "设置数据读取及下发",
+    type: 58,
+    control: 2,//  1 读取当前设备数据模式  2 下发数据模式 3 读取SN码模式 
+    content: {
+      authorizationStartTimestamp: 1780737576, //授权开始的时间戳
+      bloodPressureSwitch: 0, // 血压开关：0 开启 / 1 关闭 
+      dayTimeGap: 30 , // 白天间隔数（单位：分钟）：15/20/30/60
+      nightTimeGap: 60, // 夜间间隔数（单位：分钟）：15/20/30/60
+      nightRangeEndTime: "23:30", // 夜间范围结束时间
+      nightRangeStartTime: "17:00",// 夜间范围开始时间
+   }
+ }
+
+```
+
+
+
+#### 读取SN码
+
+##### 前提
+
+设备已连接，且设备支持YM28PRO项目
+
+##### 接口
+
+```
+veepooSetupSendYM28PROCommandManager
+```
+
+##### 参数
+
+| 参数   | 类型   | 备注                                                         |
+| ------ | ------ | ------------------------------------------------------------ |
+| switch | String | 操作类型    read 读取当前设备数据   setup 下发数据  readSN 读取SN码 |
+
+##### 使用示例
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+
+    let data = {
+      switch: 'readSN',
+    }
+veepooFeature.veepooSetupSendYM28PROCommandManager(data);
+```
+
+##### 回调
+
+```javascript
+{
+    name: "设置数据读取及下发",
+    type: 58,
+    control: 3,//操作类型:  1 读取当前设备数据模式 / 2 下发数据模式 / 3 读取SN码模式 
+    SNCode："BP3456789012",// 设备SN码
+ }
+
 ```
 
 

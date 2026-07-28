@@ -38,8 +38,8 @@ export class veepooJLBle {
         //RCSP协议
         RCSPManager.init({
           sendData: (deviceId, data) => {
-            console.log("发送数据deviceId,data", deviceId, data)
-            console.log("deviceId, UUID_SERVICE, UUID_WRITE, data=>", deviceId, UUID_SERVICE, UUID_WRITE, data)
+            // console.log("发送数据deviceId,data", deviceId, data)
+            // console.log("deviceId, UUID_SERVICE, UUID_WRITE, data=>", deviceId, UUID_SERVICE, UUID_WRITE, data)
             return BleSendDataHandler.sendData(deviceId, UUID_SERVICE, UUID_WRITE, data)
           }, getBleConnect: () => {
             return bluetooth.bleConnect
@@ -60,7 +60,7 @@ export class veepooJLBle {
           switch (event.type) {
             case 'onBleDataBlockChanged'://调整mtu成功
               const eventInfo = event.onBleDataBlockChangedEvent;
-              console.log('eventInfo==>', eventInfo);
+              // console.log('eventInfo==>', eventInfo);
 
               console.log("调整mtu成功")
               if (eventInfo && eventInfo.status == 0) {
@@ -77,7 +77,7 @@ export class veepooJLBle {
         //蓝牙收数据
         const bleDataCallback = {
           onReceiveData: (res: WechatMiniprogram.OnBLECharacteristicValueChangeListenerResult) => {
-            console.log("蓝牙收数据=================res=>========================", res)
+            // console.log("蓝牙收数据=================res=>========================", res)
             if (res.characteristicId.toLowerCase() === UUID_NOTIFY.toLowerCase() && res.serviceId.toLowerCase() === UUID_SERVICE.toLowerCase()) {
               RCSPManager.onReceiveData(res.deviceId, res.value)
             }
@@ -90,7 +90,6 @@ export class veepooJLBle {
 
     // 监听连接状态
     this.connectionStatus = function (callback: any) {
-      console.log("22423434")
       let time = setInterval(() => {
         wx.getConnectedBluetoothDevices({
           services: [],

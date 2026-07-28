@@ -1,0 +1,3 @@
+<view>
+  <button style="margin-top: 20px;" catch:tap="readManualTestData">开始读取手动测量</button>
+</view>

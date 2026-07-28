@@ -77,7 +77,7 @@ export class RcspOTA implements IOTAOp {
         that.mOTAImpl.onDeviceInit(upgradeInfo, isInit)
       },
       onRcspCommand(device: Device | null, command: CommandBase): void {
-        logv("onRcspCommand : " + command.getOpCode());
+        // logv("onRcspCommand : " + command.getOpCode());
         if (device == null) return
         if (command instanceof CmdReadFileBlock) {//设备请求文件数据
           logv("onRcspCommand : 设备请求文件数据");
@@ -112,8 +112,17 @@ export class RcspOTA implements IOTAOp {
       },
       onConnectStateChange(device: Device | null, status: Connection): void {
         if (device == null) return
-        if (status == Connection.CONNECTION_DISCONNECT && true) {//状态断开且设备是升级设备 
-          that.mOTAImpl.onDeviceDisconnect()
+        // if (status == Connection.CONNECTION_DISCONNECT && true) {//状态断开且设备是升级设备 
+        //   that.mOTAImpl.onDeviceDisconnect()
+        if (status == Connection.CONNECTION_DISCONNECT && true) {
+          setTimeout(() => {
+            if (that.mOTAImpl.isOTA()) {
+              logi("onConnectStateChange: disconnect forwarded to onDeviceDisconnect")
+              that.mOTAImpl.onDeviceDisconnect()
+            } else {
+              logi("onConnectStateChange: disconnect skipped, OTA already completed")
+            }
+          }, 200)
         }
       },
       onRcspError(_device: Device | null, _error: number, _message: string): void { },

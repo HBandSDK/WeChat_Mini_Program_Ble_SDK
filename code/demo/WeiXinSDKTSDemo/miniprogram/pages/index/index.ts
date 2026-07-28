@@ -18,6 +18,7 @@ const app = getApp<IAppOption>()
 // 血液 血糖bug修复
 Component({
   data: {
+    pairData: {},
     bleList: [],
     device: {},
     info: {},
@@ -44,7 +45,7 @@ Component({
         path: '/pages/unitSetting/index'
       },
       {
-        name: '天气',
+        name: '天气设置',
         path: '/pages/weatherForecast/index'
       },
       {
@@ -75,10 +76,10 @@ Component({
         name: 'ECG测量',
         path: '/pages/ecgTest/index'
       },
-      {
-        name: 'PTT测量',
-        path: '/pages/pttTest/index'
-      },
+      // {
+      //   name: 'PTT测量',
+      //   path: '/pages/pttTest/index'
+      // },
       {
         name: 'ECG读取',
         path: '/pages/ecgRead/index'
@@ -94,6 +95,10 @@ Component({
       {
         name: '联系人',
         path: '/pages/contactPerson/index'
+      },
+      {
+        name: 'SOS',
+        path: '/pages/sos/index'
       },
       {
         name: '闹钟',
@@ -132,13 +137,13 @@ Component({
         path: '/pages/bloodGlucose/index'
       },
       {
-        name: 'ota封装版',
+        name: 'ota',
         path: '/pages/ota/index'
       },
-      {
-        name: 'ota原生版',
-        path: '/pages/otaNavite/index'
-      },
+      // {
+      //   name: 'ota原生版',
+      //   path: '/pages/otaNavite/index'
+      // },
       {
         name: '久坐提醒',
         path: '/pages/sedentaryToast/index'
@@ -183,10 +188,10 @@ Component({
         name: 'android编码',
         path: '/pages/androidCode/index'
       },
-      // {
-      //   name: 'UI风格',
-      //   path: '/pages/uiStyle/index'
-      // },
+      {
+        name: 'UI风格',
+        path: '/pages/uiStyle/index'
+      },
       {
         name: '同步时间',
         path: '/pages/syncTime/index'
@@ -200,17 +205,45 @@ Component({
         path: '/pages/heartRateTest/index'
       },
       {
-        name: '压力测量',
-        path: '/pages/stressTest/index'
+        name: '语言切换',
+        path: '/pages/languagePage/index'
       },
       {
-        name: '微体检测量',
+        name: '读取手动测量',
+        path: '/pages/manualMeasurement/index'
+      },
+      {
+        name: '肤色设置',
+        path: '/pages/skinColorSetting/index'
+      },
+      {
+        name: '微体检',
         path: '/pages/microCheck/index'
       },
       {
-        name: '语言切换',
-        path: `pages/languagePage/index`
+        name: 'B3自动测量',
+        path: '/pages/b3AutoTestFeature/b3AutoTestFeature'
       },
+      {
+        name: 'JH58',
+        path: '/pages/JH58/index'
+      },
+      {
+        name: 'ZT163常灭屏',
+        path: '/pages/ZT163ScreenKillFunction/index'
+      },
+      {
+        name: '4G服务',
+        path: '/pages/4GService/Index'
+      },
+      {
+        name: '压力测量',
+        path: '/pages/pressureTest/index'
+      },
+      {
+        name: 'YM28PRO',
+        path: '/pages/YM28PROSendCommand/index'
+      }
     ],
     valData: {
       heartRate: 'start',
@@ -218,8 +251,15 @@ Component({
     }
   },
   methods: {
-    packRgb(r: any, g: any, b: any) {
+    getPairData() {
+      let self = this;
+      let res = wx.getStorageSync('pairData');
+      self.setData({
+        pairData: res
+      })
+    },
 
+    packRgb(r: any, g: any, b: any) {
 
       // 构造高位字节
       console.log("(r << 3) & 0xF8)=>", (r << 3) & 0xF8)
@@ -231,53 +271,6 @@ Component({
 
       return { big, little };
     },
-    getF003() {
-      let device: any = wx.getStorageSync('bleDate')
-      wx.getBLEDeviceServices({
-        // 这里的 deviceId 需要已经通过 wx.createBLEConnection 与对应设备建立连接
-        deviceId: device.deviceId,
-        success(res) {
-          console.log('device services:', res.services)
-          let date = res.services;
-          for (let i = 0; i < date.length; i++) {
-            if (date[i].uuid == 'F0020001-0451-4000-B000-000000000000') {
-              wx.getBLEDeviceCharacteristics({
-                deviceId: device.deviceId,
-                serviceId: date[i].uuid,
-                success(res) {
-                  console.log('device getBLEDeviceCharacteristics:', res.characteristics);
-                  res.characteristics.forEach((item: any, index: number) => {
-                    if (item.properties.notify) {
-                      console.log("item==>", item)
-                      wx.notifyBLECharacteristicValueChange({
-                        state: true, // 启用 notify 功能
-                        deviceId: device.deviceId,
-                        serviceId: date[i].uuid,
-                        characteristicId: item.uuid,
-                        success(res) {
-                          console.log("监听ecg特征成功=>", res)
-                          wx.onBLECharacteristicValueChange(function (res) {
-                            console.log("res=>", res)
-                          })
-                        },
-                        fail(err) {
-                          console.log("监听ecg特征失败err=>", err)
-                        }
-                      })
-                    }
-                  })
-
-                }, fail(err) {
-                  console.log('err=>', err)
-                }
-              })
-            }
-          }
-        }, fail(err) {
-          console.log(err)
-        }
-      })
-    },
 
 
     blePwd() {
@@ -288,72 +281,109 @@ Component({
     },
 
     onShow() {
-      let self = this;
 
+      this.getPairData();
+      console.log('onshow生命周期')
+      let msg=wx.getStorageSync('bleInfo')
+      console.log('bleInfo==>',msg)
+      // ==========================重连函数==========================
+      // this.reConnect();
+
+
+
+      // 先判断蓝牙是否可用，再执行操作
+      wx.getBluetoothAdapterState({
+        success: (res) => {
+          if (res.available) {
+            veepooBle.veepooWeiXinSDKStopSearchBleManager(function (e: any) {
+              console.log("停止蓝牙搜索=>", e)
+            })
+            this.getConnectedBleDevice();
+          }
+        }
+      })
       // let blePackage = {"deviceId":"FA:4E:30:9C:E6:B0","rssi":-38,"connectable":true,"data":{"0":2,"1":1,"2":6,"3":9,"4":255,"5":248,"6":248,"7":76,"8":197,"9":217,"10":146,"11":3,"12":248,"13":3,"14":3,"15":231,"16":254,"17":5,"18":9,"19":86,"20":50,"21":55,"22":90},"deviceName":"V27Z"}
+      // 初始化蓝牙适配器
 
-      // let blePackage = { "deviceId": "F0:87:99:D6:F7:2D", "rssi": -53, "connectable": true, "data": { "0": 2, "1": 1, "2": 6, "3": 3, "4": 3, "5": 231, "6": 254, "7": 3, "8": 25, "9": 65, "10": 3, "11": 9, "12": 255, "13": 248, "14": 248, "15": 46, "16": 28, "17": 105, "18": 64, "19": 211, "20": 20, "21": 6, "22": 9, "23": 70, "24": 49, "25": 48, "26": 48, "27": 0 }, "deviceName": "F100" }
-
-
-      // const valuesArray = Object.values(blePackage.data);
-      // console.log("valuesArray=>", valuesArray)
-      // let hexValue = valuesArray.map(value => value.toString(16).toUpperCase().padStart(2, '0'));
-      // console.log('hexValue==>', hexValue)
-      // let hexMac = hexValue.splice(15, 6).reverse();
-      // let max = '';
-      // for (let i = 0; i < hexMac.length; i++) {
-      //   if (i == hexMac.length - 1) {
-      //     max = max + hexMac[i]
-      //   } else {
-      //     max = max + hexMac[i] + ':'
-      //   }
-      // }
-      // console.log("mac=>", max)
-
-      // let dataLength = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0].length
-      // let tbyte = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0]
-
-      // let hex = ["02", "01", "06", "03", "03", "E7", "FE", "03", "19", "41", "03", "09", "FF", "F8", "F8", "2E", "1C", "69", "40", "D3", "14", "06", "09", "46", "31", "30", "30", "00"]
+      let blePackage = { "deviceId": "F0:87:99:D6:F7:2D", "rssi": -53, "connectable": true, "data": { "0": 2, "1": 1, "2": 6, "3": 3, "4": 3, "5": 231, "6": 254, "7": 3, "8": 25, "9": 65, "10": 3, "11": 9, "12": 255, "13": 248, "14": 248, "15": 46, "16": 28, "17": 105, "18": 64, "19": 211, "20": 20, "21": 6, "22": 9, "23": 70, "24": 49, "25": 48, "26": 48, "27": 0 }, "deviceName": "F100" }
 
 
-      // for (let i = 0; i < hex.length; i++) {
-      //   if (hex[i] + hex[i + 1] == 'F8F8') {
-      //     console.log('index====>', i + 2)
-      //   }
+      const valuesArray = Object.values(blePackage.data);
+      console.log("valuesArray=>", valuesArray)
+      let hexValue = valuesArray.map(value => value.toString(16).toUpperCase().padStart(2, '0'));
+      console.log('hexValue==>', hexValue)
+      let hexMac = hexValue.splice(15, 6).reverse();
+      let max = '';
+      for (let i = 0; i < hexMac.length; i++) {
+        if (i == hexMac.length - 1) {
+          max = max + hexMac[i]
+        } else {
+          max = max + hexMac[i] + ':'
+        }
+      }
+      console.log("mac=>", max);
 
-      // }
+      let dataLength = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0].length
+      let tbyte = [2, 1, 6, 3, 3, 231, 254, 3, 25, 65, 3, 9, 255, 248, 248, 46, 28, 105, 64, 211, 20, 6, 9, 70, 49, 48, 48, 0]
 
-      // if (dataLength >= 8) {
-      //   let endIndex: number = 7;
-      //   if (tbyte[0] === 0xF8 && tbyte[1] === 0xF9) {
-      //     endIndex += 4;
-      //   }
+      let hex = ["02", "01", "06", "03", "03", "E7", "FE", "03", "19", "41", "03", "09", "FF", "F8", "F8", "2E", "1C", "69", "40", "D3", "14", "06", "09", "46", "31", "30", "30", "00"]
 
 
-      // }
+      for (let i = 0; i < hex.length; i++) {
+        if (hex[i] + hex[i + 1] == 'F8F8') {
+          console.log('index====>', i + 2)
+        }
+
+      }
+
+      if (dataLength >= 8) {
+        let endIndex: number = 7;
+        if (tbyte[0] === 0xF8 && tbyte[1] === 0xF9) {
+          endIndex += 4;
+        }
+
+
+      }
 
       veepooBle.veepooWeiXinSDKStopSearchBleManager(function (e: any) {
         console.log("停止蓝牙搜索=>", e)
       })
-      this.getConnectedBleDevice();
 
+      this.getConnectedBleDevice();
+      // this.notifyMonitorValueChange();
       wx.onBLEConnectionStateChange(function (res) {
         // 该方法回调中可以用于处理连接意外断开等异常情况
         console.log("res==>", res)
         console.log(`device ${res.deviceId} state has changed, connected: ${res.connected}`)
         wx.setStorageSync('VPDevice', null)
       })
-      
+      const items = Array.from({
+        length: 40
+      }, () => 0)
+      console.log("items=>", items)
+
 
       let data = {
         status: true
       }
       veepooBle.veepooWeiXinSDKRawDataShowStatus(data);
 
-      // let date = new Date();
-      // console.log("date==>", self.getNextDays('2024-08-01', 3));
+      let str = "2025-09-03 17:48:00";
+      const isoStr = str.replace(' ', 'T');
+      const date = new Date(isoStr);
+      console.log('时间戳==》', date.getTime());
 
     },
+    onLoad() {
+    },
+
+    // 退出当前页面
+    // onHide() {
+    //   console.log('onhide生命周期')
+    //   // 断开当前连接页面
+    //   this.disconnectBluetooth();
+    // },
+
 
     getNextDays(startDate: any, count: number) {
       let days = [];
@@ -388,7 +418,10 @@ Component({
     },
     // 获取背景信息
     getBackgroundInfo() {
-      veepooFeature.veepooSendReadCustomBackgroundDailManager()
+      let data = {
+        type: 1
+      }
+      veepooFeature.veepooSendReadCustomBackgroundDailManager(data);
     },
 
     // 断开连接
@@ -433,7 +466,8 @@ Component({
               // vpJLBle.init();
               // 连接上后读取秘钥，电量等
               setTimeout(() => {
-                self.BlePasswordCheckManager();
+                let pairData = self.data.pairData;
+                self.BlePasswordCheckManager(pairData);
               }, 500);
             }
           })
@@ -452,6 +486,7 @@ Component({
       let self = this;
       console.log(path)
       if (path == 'DisconnectBluetooth') {
+        veepooFeature.veepooBlePasswordCheckManager({ isPair: false })
         veepooFeature.veepooSendDisconnectBluetoothDataManager()
         return
       }
@@ -479,27 +514,22 @@ Component({
 
       if (path == "Reconnect") {
         let item = wx.getStorageSync('bleInfo');
+
         veepooBle.veepooWeiXinSDKBleReconnectDeviceManager(item, function (result: any) {
           console.log('蓝牙重连result=>', result);
           // 获取当前服务，订阅监听
           self.notifyMonitorValueChange();
           // 蓝牙密码核准
-          veepooFeature.veepooBlePasswordCheckManager();
-
+          veepooFeature.veepooBlePasswordCheckManager({ isPair: false });
         })
         return
       }
-
-
-      // switchServices
-      // Reconnect
-
       wx.navigateTo({
         url: path,
       })
     },
     // 密钥核验  无参数
-    BlePasswordCheckManager() {
+    BlePasswordCheckManager(pairData) {
       let self = this;
       let VPDevice = wx.getStorageSync('VPDevice');
 
@@ -509,23 +539,22 @@ Component({
           device: VPDevice
         })
       } else {
-        veepooFeature.veepooBlePasswordCheckManager();
+        veepooFeature.veepooBlePasswordCheckManager(pairData);
       }
 
       console.log("读取电量")
       this.ElectricQuantityManager();
       console.log("读取步数")
       this.StepCalorieDistanceManager();
-      this.getBackgroundInfo()
+      // this.getBackgroundInfo()
       let bleDate = wx.getStorageSync('bleDate')
       console.log("bleDate==>", bleDate)
       wx.setBLEMTU({
         deviceId: bleDate.deviceId,
         mtu: 247,
         success: res => {
-
           console.log("第一个res=>", res)
-        },
+        }, //
         fail: (res) => {
           wx.getBLEMTU({
             deviceId: bleDate.deviceId, success: res => {
@@ -563,7 +592,7 @@ Component({
     bleDataParses(value: any) {
       let self = this;
       let device: any = this.data.device;
-      console.log("蓝牙监听返回= 这个是index页面 >", value)
+      console.log("蓝牙监听返回= 这个是index页面=>", value)
       // 校验
       if (value.type == 1) {
         device.VPDeviceVersion = value.content.VPDeviceVersion;
@@ -589,6 +618,70 @@ Component({
         let type = value.content.customDialType
         wx.setStorageSync('customType', type)
       }
+    },
+
+    //==========================重连函数(onShow生命周期)==========================
+    reConnect() {
+      let self = this;
+      // 这是第一次连接时的数据,我保存到了本地，之后要传入到veepooWeiXinSDKBleConnectionServicesCharacteristicsNotifyManager接口中;
+      // item里的内容wx.onBluetoothDeviceFound 返回的devices下面的数据;
+      const item = wx.getStorageSync('bleInfo')
+      wx.openBluetoothAdapter({
+        success(res) {
+          console.log(res)
+          wx.createBLEConnection({
+            deviceId: item.deviceId,
+            success() {
+              veepooBle.veepooWeiXinSDKBleConnectionServicesCharacteristicsNotifyManager(item, function (result: any) {
+                console.log("result=>", result)
+                if (result.connection) {
+                  // 获取当前服务，订阅监听
+                  self.notifyMonitorValueChange();
+
+                  setTimeout(() => {
+                    let data = {
+                      isPair: false
+                    }
+                    veepooFeature.veepooBlePasswordCheckManager(data)
+                  }, 500);
+
+                  let times = setInterval(() => {
+                    // 设备芯片
+                    // 当前设备芯片获取状态  （通过调用蓝牙密码核准设置， 获取）
+                    let deviceChipStatus = wx.getStorageSync('deviceChipStatus')
+                    console.log("deviceChipStatus===>", deviceChipStatus)
+                    if (deviceChipStatus) {
+                      wx.hideLoading()
+                      console.log('重连成功！！！！')
+                      clearInterval(times)
+                    }
+                  }, 1000)
+                }
+              })
+            },
+            fail(res) {
+              console.log('连接步骤异常！！！')
+            }
+          })
+
+        }, fail(res) {
+          console.error(res)
+        }
+      })
+
+    },
+    disconnectBluetooth() {
+      veepooFeature.veepooBlePasswordCheckManager({ isPair: false })
+      veepooFeature.veepooSendDisconnectBluetoothDataManager()
+    },
+    startDiscovery() {
+      return new Promise((resolve, reject) => {
+        wx.startBluetoothDevicesDiscovery({
+          allowDuplicatesKey: false,
+          success: resolve,
+          fail: reject
+        })
+      })
     }
   },
 })

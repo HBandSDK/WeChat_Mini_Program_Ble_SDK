@@ -1,0 +1,5 @@
+<view class="box">
+  <view class="box-item"><button catch:tap="start">开启常灭屏</button></view>
+  <view class="box-item"><button catch:tap="stop">关闭常灭屏</button></view>
+  <view class="box-item"><button catch:tap="read">读取常灭屏</button></view>
+</view>

@@ -14,7 +14,8 @@ Page({
     UPstartTime: '00:00',
     UPalarmSwitch: false,
     UPalarmId: '',
-    alarmList: []
+    alarmList: [],
+    lable: ""
   },
 
 
@@ -70,6 +71,14 @@ Page({
       alarmId
     })
   },
+
+  getLabel(e: any) {
+    let lable = e.detail.value;
+    this.setData({
+      lable
+    })
+  },
+
   getalarmSwitch(e: any) {
     let alarmSwitch = e.detail.value;
     this.setData({
@@ -136,7 +145,7 @@ Page({
         "Saturday": false,
         "Sunday": false
       },
-      name: "猪猪小猪猪"
+      name: this.data.lable
     }
     console.log("data=>", data)
     veepooFeature.veepooSendSetAlarmClockDataManager(data);

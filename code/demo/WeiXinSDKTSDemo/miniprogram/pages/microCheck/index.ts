@@ -96,6 +96,16 @@ Page({
       }
       // 其他类型数据忽略（由其他页面处理）
     })
+
+    // ppg 的通道与常规数据通道不一样
+    veepooBle.veepooWeiXinSDKNotifyECGValueChange(function (e: any) {
+      if (!e || e.type === undefined) {
+        return;
+      }
+      if (e.type == 54) {
+        console.log("[微体检] 蓝牙回调触发，ppg原始数据:", JSON.stringify(e))
+      }
+    })
   },
 
   // 处理微体检测量回调

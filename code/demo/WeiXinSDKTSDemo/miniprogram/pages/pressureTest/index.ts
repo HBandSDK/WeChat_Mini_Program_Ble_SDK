@@ -1,4 +1,4 @@
-// pages/stressTest/index.ts
+// pages/pressureTest/index.ts
 import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
 
 Page({

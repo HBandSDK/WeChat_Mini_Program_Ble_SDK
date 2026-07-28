@@ -1,9 +1,6 @@
 // pages/bleConnection/index.ts
 import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
 
-
-
-
 Page({
 
   /**
@@ -25,7 +22,6 @@ Page({
           self.setData({
             isIOS: true
           })
-
         }
       }
     });
@@ -72,6 +68,7 @@ Page({
     deviceList.forEach((item: any) => {
       if (item.deviceId == e.currentTarget.dataset.deviceid) {
         wx.setStorageSync('bleInfo', item)
+        console.log('传入的bleInfo-item:', item)
         // 连接
         veepooBle.veepooWeiXinSDKConnectionDevice(item, function (result: any) {
           wx.hideLoading()
@@ -87,7 +84,9 @@ Page({
     wx.showLoading({
       title: '连接中'
     })
+
     this.StopSearchBleManager()
+
     deviceList.forEach((item: any) => {
       if (item.deviceId == e.currentTarget.dataset.deviceid) {
         wx.setStorageSync('bleInfo', item)
@@ -96,112 +95,34 @@ Page({
           if (result.connection) {
             // 获取当前服务，订阅监听
             self.notifyMonitorValueChange();
-            console.log("232323")
-            // 蓝牙密码核准
-            console.log("3q243")
 
             setTimeout(() => {
-              veepooFeature.veepooBlePasswordCheckManager();
+              let data = {
+                isPair: false
+              }
+              wx.setStorageSync('pairData', data);
+              veepooFeature.veepooBlePasswordCheckManager(data)
             }, 500);
-
 
             let times = setInterval(() => {
               // 设备芯片
               // 当前设备芯片获取状态  （通过调用蓝牙密码核准设置， 获取）
               let deviceChipStatus = wx.getStorageSync('deviceChipStatus')
-
               console.log("deviceChipStatus===>", deviceChipStatus)
               if (deviceChipStatus) {
                 wx.hideLoading()
                 wx.redirectTo({
                   url: '/pages/index/index'
                 })
-
-                // 实际业务流程根据获取到的芯片类型添加相关js逻辑
-                // if (deviceChip == 1) {
-                //   console.log("杰里");
-                // } else if (deviceChip == 2) {
-                //   console.log("炬芯")
-                // } else if (deviceChip == 3) {
-                //   console.log("中科")
-                // } else {
-                //   console.log("Nordic/汇顶系列")
-                // }
-
                 clearInterval(times)
               }
             }, 1000)
           }
-
-
         })
       }
     })
   },
-  connectBle2() {
-    let self = this;
-    wx.showLoading({
-      title: '连接中'
-    })
-    this.StopSearchBleManager()
-    let item = wx.getStorageSync('bleInfo')
-    veepooBle.veepooWeiXinSDKBleConnectionServicesCharacteristicsNotifyManager(item, function (result: any) {
-      console.log("result=>", result)
-      if (result.connection) {
 
-        if (item.name == 'DFULang') {
-          wx.hideLoading()
-          // 获取当前服务，订阅监听
-          self.notifyMonitorValueChange();
-          setTimeout(() => {
-            wx.redirectTo({
-              url: '/pages/index/index'
-            })
-          }, 1000);
-          return
-        }
-        // 获取当前服务，订阅监听
-        self.notifyMonitorValueChange();
-        // 蓝牙密码核准
-        veepooFeature.veepooBlePasswordCheckManager();
-
-        wx.hideLoading()
-        wx.redirectTo({
-          url: '/pages/index/index'
-        })
-        return
-        let times = setInterval(() => {
-          // 设备芯片
-          let deviceChip = wx.getStorageSync('deviceChip');
-          // 当前设备芯片获取状态  （通过调用蓝牙密码核准获取）
-          let deviceChipStatus = wx.getStorageSync('deviceChipStatus')
-          console.log("deviceChipStatus==>", deviceChipStatus)
-          console.log("deviceChip==>", deviceChip)
-          if (deviceChipStatus) {
-            wx.hideLoading()
-            wx.redirectTo({
-              url: '/pages/index/index'
-            })
-
-            // 实际业务流程根据获取到的芯片类型添加相关js逻辑
-            // if (deviceChip == 1) {
-            //   console.log("杰里");
-            // } else if (deviceChip == 2) {
-            //   console.log("炬芯")
-            // } else if (deviceChip == 3) {
-            //   console.log("中科")
-            // } else {
-            //   console.log("Nordic/汇顶系列")
-            // }
-
-            clearInterval(times)
-          }
-        }, 1000)
-      }
-
-
-    })
-  },
   // 监听订阅 notifyMonitorValueChange
   notifyMonitorValueChange() {
     let self = this;
@@ -221,10 +142,6 @@ Page({
     veepooBle.veepooWeiXinSDKStopSearchBleManager(function (e: any) {
       console.log("停止蓝牙搜索=>", e)
     })
-  },
-  // 密钥核验  无参数
-  BlePasswordCheckManager() {
-    veepooFeature.veepooBlePasswordCheckManager()
   },
   // 电量读取
   ElectricQuantityManager() {

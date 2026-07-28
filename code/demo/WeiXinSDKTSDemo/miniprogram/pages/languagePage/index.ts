@@ -59,7 +59,6 @@ Page({
 
 
   bindLanguage() {
-  
     let val = {
       language: this.data.index
     }

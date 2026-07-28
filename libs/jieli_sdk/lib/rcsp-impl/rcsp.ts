@@ -167,7 +167,7 @@ class RcspWrapperManager {
   }
   private _OnSendDataCallback: OnSendDataCallback = {
     sendDataToDevice: (device, data) => {
-      console.log("_OnSendDataCallback data :" + ab2hex(data));
+      // console.log("_OnSendDataCallback data :" + ab2hex(data));
 
       return this._SendData(device.deviceId, data)
     }
@@ -287,7 +287,6 @@ class RcspWrapperManager {
     const event = new RCSP.RCSPWrapperEvent()
     event.type = 'onSwitchUseDevice'
     event.onSwitchUseDeviceEvent = { device }
-    wx.setStorageSync("vp_connected_verify", true)
     this._notifyEvent(event)
   }
   private _onRCSPBluetoothEvent(event: { type: string, onConnectionEvent: { device: BluetoothDevice, status: number } }) {

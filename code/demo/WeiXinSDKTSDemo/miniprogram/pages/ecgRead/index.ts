@@ -73,6 +73,7 @@ Page({
       })
       return
     }
+
     let data = {
       dataId
     }
@@ -105,12 +106,8 @@ Page({
 
             console.log("list=>", self.data.list)
             self.drawCurve()
-
-
           }
         }
-
-
       }
     })
   },

@@ -106,72 +106,44 @@ Page({
     let data = {
       conSwitch: 'start',
       switch: 'read', // setup 开启 read 关闭
-      beforeBreakfast: {
-        hour: '08',
-        minute: '00',
-        bloodGlucoseValue: 5.5
-      },
-      afterBreakfast: {
-        hour: '09',
-        minute: '00',
-        bloodGlucoseValue: 7.5
-      },
-      beforeLunch: {
-        hour: '12',
-        minute: '00',
-        bloodGlucoseValue: 5.0
-      },
-      afterLunch: {
-        hour: '13',
-        minute: '00',
-        bloodGlucoseValue: 7.5
-      },
-      beforeDinner: {
-        hour: '18',
-        minute: '00',
-        bloodGlucoseValue: 6.5
-      },
-      afterDinner: {
-        hour: '19',
-        minute: '00',
-        bloodGlucoseValue: 7.5
-      }
     }
     veepooFeature.veepooSendSixBloodGlucoseCalibrateValueDataManager(data);
   },
+
+
   startBloodSixVerify() {
     let data = {
       conSwitch: 'start', // start 开启  stop 关闭
       switch: 'setup', // setup 设置 read 读取
       beforeBreakfast: {
-        hour: '08',
-        minute: '00',
-        bloodGlucoseValue: 5.5
+        hour: '07',
+        minute: '05',
+        bloodGlucoseValue: 8.2 
       },
       afterBreakfast: {
-        hour: '09',
-        minute: '00',
-        bloodGlucoseValue: 7.5
+        hour: '10',
+        minute: '55',
+        bloodGlucoseValue: 8.2  
       },
       beforeLunch: {
-        hour: '12',
+        hour: '14',
         minute: '00',
-        bloodGlucoseValue: 5.0
+        bloodGlucoseValue: 8.2 
       },
       afterLunch: {
-        hour: '13',
-        minute: '00',
-        bloodGlucoseValue: 7.5
+        hour: '15',
+        minute: '13',
+        bloodGlucoseValue: 9.2 
       },
       beforeDinner: {
-        hour: '18',
-        minute: '00',
-        bloodGlucoseValue: 6.5
+        hour: '21',
+        minute: '50',
+        bloodGlucoseValue: 8.2  
       },
       afterDinner: {
-        hour: '19',
-        minute: '00',
-        bloodGlucoseValue: 7.5
+        hour: '21',
+        minute: '46',
+        bloodGlucoseValue: 8.2 
       }
     }
     // wx.navigateBack()

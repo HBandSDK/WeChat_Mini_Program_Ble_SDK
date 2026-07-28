@@ -53,7 +53,7 @@ Page({
   notifyMonitorValueChange() {
     let self = this;
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
-      console.log(" ss 监听蓝牙回调=>", e);
+      console.log("身体成分 监听蓝牙回调=>", e);
       if (e.type == 32) {
         if (e.name == '身体成分检测') {
           self.setData({
