@@ -282,7 +282,7 @@ Page({
       if (!e) {
         return
       }
-      if (e.type == 54) {
+      if (e.type == 55 && e.name == 'PPG测量模式开关状态') {
         self.setData({
           modeType: e.content.state
         })

@@ -102,7 +102,7 @@ Page({
       if (!e || e.type === undefined) {
         return;
       }
-      if (e.type == 54) {
+      if (e.type == 36) {
         console.log("[微体检] 蓝牙回调触发，ppg原始数据:", JSON.stringify(e))
       }
     })

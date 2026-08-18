@@ -55,24 +55,25 @@ Page({
     let self = this;
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
       console.log("压力测量监听蓝牙回调=>", e);
-      // type 52 为压力测量数据类型（根据实际SDK文档调整）
-      if (e.type == 52) {
-        let stressValue = e.content.stress || 0;
+      // type 58 为压力测量数据类型（根据实际SDK文档调整）
+      if (e.type == 58 && e.progress == 100) {
+        let stressValue = e.content.pressure || 0;
         let stressLevelText = self.getStressLevelText(stressValue);
+
+        // 压力测量完成回调
+        self.setData({
+          isMeasuring: false
+        })
 
         self.setData({
           stress: stressValue,
           stressLevel: stressLevelText
         })
-      } else if (e.type == 53) {
-        // 压力测量进度回调
-        console.log("压力测量进度:", e.content);
-      } else if (e.type == 54) {
-        // 压力测量完成回调
-        self.setData({
-          isMeasuring: false
-        })
+
         console.log("压力测量完成");
+      } else if (e.type == 58 && e.progress !== 100) {
+        // 压力测量进度回调
+        console.log("压力测量进度:", e.progress);
       }
     })
   },
