@@ -779,10 +779,11 @@ veepooFeature.veepooReadElectricQuantityManager();
       name:"电池电量读取",// 描述
       type:2,// type 等于2表示当前返回信息属于电量读取
       content: {
-        VPDeviceIsPercent, // 电量是否显示百分百 true : false
-        VPDeviceElectricPercent, // 当前设备电量，显示百分百出现
+        VPDeviceElectricModel:'normal', // 设备电源模式 normal 正常 charging 充电状态 lowPressure 低压状态 fullyCharged 充满状态
+        VPDeviceIsPercent:true, // 电量是否显示百分百 true : false
+        VPDeviceElectricPercent:46, // 当前设备电量，显示百分百出现
         VPDeviceElectricGrade, // 电量等级 显示等级出现
-        VPDeviceElectricTypeIsLowVoltage // 是否低电，normal 正常，lowVoltage 低电
+        VPDeviceElectricTypeIsLowVoltage:'normal' // 是否低电，normal 正常，lowVoltage 低电
       }
 }
 
