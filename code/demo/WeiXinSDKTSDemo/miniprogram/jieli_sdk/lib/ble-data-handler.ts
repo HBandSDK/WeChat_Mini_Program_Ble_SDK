@@ -4,10 +4,13 @@ import { UUID_NOTIFY } from "./rcsp-impl/bluetooth";
 
 // OTA发送逐包日志开关：排查传输问题时改true，平时保持false——否则3MB固件会打出数万条日志撑爆鸿蒙console导致崩溃
 const OTA_SEND_DEBUG = false
+
 // 单包发送payload上限(字节)。部分iPhone(如iPhone SE2)与设备协商出的MTU偏大(实测可达512)，按真实值分包传输会失败；
 // 经验上限为244(对应协商MTU 247 - ATT头3字节)。OTA固件、表盘图等大数据传输的单包大小统一以此封顶，
 // 协商值本身不改(保留真实协商结果用于调试)，仅在发送分包时封顶。
 const MAX_PACKET_PAYLOAD = 244
+
+
 
 /** 处理收到数据 */
 export var BleDataHandler = {

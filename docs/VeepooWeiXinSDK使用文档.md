@@ -739,6 +739,7 @@ veepooFeature.veepooBlePasswordCheckManager(data);
 | electronicBusinessCardType | 电子名片（与钱包/名片互斥）                |
 | healthAssistanceType       | 健康辅助评估（0 不支持；>0 支持）          |
 | microCheckType             | 微体检（0 不支持 App 端；1 支持）          |
+| DAMotionContrlType         | 运动控制（0 不支持 ；1 支持）              |
 
 
 
@@ -779,11 +780,10 @@ veepooFeature.veepooReadElectricQuantityManager();
       name:"电池电量读取",// 描述
       type:2,// type 等于2表示当前返回信息属于电量读取
       content: {
-        VPDeviceElectricModel:'normal', // 设备电源模式 normal 正常 charging 充电状态 lowPressure 低压状态 fullyCharged 充满状态
-        VPDeviceIsPercent:true, // 电量是否显示百分百 true : false
-        VPDeviceElectricPercent:46, // 当前设备电量，显示百分百出现
+        VPDeviceIsPercent, // 电量是否显示百分百 true : false
+        VPDeviceElectricPercent, // 当前设备电量，显示百分百出现
         VPDeviceElectricGrade, // 电量等级 显示等级出现
-        VPDeviceElectricTypeIsLowVoltage:'normal' // 是否低电，normal 正常，lowVoltage 低电
+        VPDeviceElectricTypeIsLowVoltage // 是否低电，normal 正常，lowVoltage 低电
       }
 }
 
@@ -5543,6 +5543,348 @@ let score = veepooFeature.VeepooGetHrvHeartHealthScore(HrvData);
 }
 ```
 
+------
+
+### 9.36 运动控制(type=60)
+
+#### 9.36.1 设置运动控制（开启/暂停/继续/停止）
+
+**前提**
+
+设备支持世界时钟功能，且在功能汇总第四包中的**DAMotionContrlType**字段的数据为1
+
+**接口**
+
+```
+veepooSendSportControlDataManager
+```
+
+**参数**
+
+| 字段      | 类型   | 必填 | 说明                                     |
+| --------- | ------ | ---- | ---------------------------------------- |
+| switch    | string | 是   | setup 表示设置 read 表示读取             |
+| sportMode | number | 是   | 0 =app运动，其他值=设备运动模式编号      |
+| opCode    | number | 是   | 操作码： 1 =开启 2 =暂停 3 =继续 4 =停止 |
+
+**使用示例**
+
+```js
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+let data ={
+  switch: 'setup',
+  sportMode: 0,    // 运动模式：0=app运动，其他=设备运动模式
+  opCode: 1        // 操作码：1=开启 2=暂停 3=继续 4=停止
+}
+veepooFeature.veepooSendSportControlDataManager(data)
+```
+
+**回调**
+
+```json
+{
+  "name": "运动控制",
+  "model": "setup",
+  "state": "success",
+  "type": 60
+}
+```
+
+#### 9.36.2 读取运动信息
+
+**前提**
+
+1.设备支持世界时钟功能，且在功能汇总第四包中的**DAMotionContrlType**字段的数据为1;
+2.当小程序设置到运动控制成功后再调用此处的接口，且每**3秒**调用一次；
+
+**参数**
+
+| 字段      | 类型   | 必填 | 说明                                |
+| --------- | ------ | ---- | ----------------------------------- |
+| switch    | string | 是   | setup 表示设置 read 表示读取        |
+| sportMode | number | 是   | 0 =app运动，其他值=设备运动模式编号 |
+
+**使用示例**
+
+```js
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+let data={
+  switch: 'read',
+  sportMode: 0
+}
+veepooFeature.veepooSendSportControlDataManager(data)
+```
+
+**回调**
+
+```js
+{
+  "name": "运动控制",
+  "model": "read",
+  "state": "success",
+  "Progress": 100,
+  "type": 60,
+  "content": {
+    "sportModel": 1,
+    "opCode": 2,
+    "runState": "NotStarted",
+    "deviceState": "Charging",
+    "exerciseTimeStamp": 1,
+    "exerciseDistance": 0,
+    "heartRate": 0,
+    "calories": 0,
+    "pace": 0,
+    "speed": 0
+  }
+}
+```
+
+> 1.设备主动上报时 Content 只包含 sportModel 、 opCode 、 heartRate；
+> 2.关于具体数据的单位换算，可以参考给出的demo;
+
+**content 字段说明**
+
+| 字段              | 类型   | 说明                                                   |
+| ----------------- | ------ | ------------------------------------------------------ |
+| sportModel        | number | 运动模式： 0 =app运动，其他=设备运动模式               |
+| opCode            | number | 操作码                                                 |
+| runState          | string | 运动状态（见下表）                                     |
+| deviceState       | string | 设备状态（见下表）                                     |
+| exerciseTimeStamp | number | 运动时间戳（秒）                                       |
+| exerciseDistance  | number | 运动距离（米）                                         |
+| heartRate         | number | 心率（次/分、bpm）                                     |
+| calories          | number | 卡路里（卡）                                           |
+| pace              | number | 配速（秒）具体单位转换可以参考demo                     |
+| speed             | number | 速度（米/小时）具体单位转换可以参考demo                |
+| gnssInfo          | object | GNSS信息： { isGnssType: boolean, gnssSignal: string } |
+
+**runState 枚举：**
+
+| 字符串     | 说明       |
+| ---------- | ---------- |
+| NotStarted | 未开始运动 |
+| Exercising | 运动中     |
+| Paused     | 暂停中     |
+
+**deviceState 枚举：**
+
+| 字符串             | 说明                           |
+| ------------------ | ------------------------------ |
+| Normal             | 设备正常                       |
+| LowBattery         | 设备低电                       |
+| Charging           | 设备充电中                     |
+| MaxDurationReached | 设备单次运动时长已达到最大限制 |
+| BatteryCritical    | 电量小于等于10%                |
+
+**gnssSignal枚举：**
+
+| 字符串       | 说明   |
+| ------------ | ------ |
+| NoSignal     | 无信号 |
+| SignalWeak   | 弱     |
+| SignalNormal | 一般   |
+| SignalGood   | 良好   |
+| SignalStrong | 强     |
+
+------
+
+
+
+### 9.37 世界时钟(type=61)
+
+#### 9.37.1 添加世界时钟
+
+**前提**
+
+设备支持世界时钟功能，且在功能汇总第四包中的**worldClockType**字段的数据为1
+
+**接口**
+
+```js
+veepooSendAddWorldClockDataManager
+```
+
+**参数**
+
+| 字段     | 类型   | 说明                         |
+| -------- | ------ | ---------------------------- |
+| id       | number | 时钟id编号                   |
+| timeZone | number | 相较 UTC（GMT） 的偏移分钟数 |
+| city     | string | 城市名称                     |
+
+**时区参数说明：**
+
+SDK 中 timezone 字段表示 相较格林尼治时间（UTC，本初子午线）的偏移分钟数 ，规则如下：
+
+| 城市   | 时区            | 偏移量（分钟） | 传入值 |
+| ------ | --------------- | -------------- | ------ |
+| 北京   | 东八区（+8:00） | 8 × 60 = 480   | 480    |
+| 东京   | 东九区（+9:00） | 9 × 60 = 540   | 540    |
+| 伦敦   | UTC±0（+0:00）  | 0              | 0      |
+| 纽约   | 西五区（-5:00） | -5 × 60 = -300 | -300   |
+| 洛杉矶 | 西八区（-8:00） | -8 × 60 = -480 | -480   |
+
+> 偏移量必须是 15 的倍数。正为东、负为西，SDK 内部会自动换算为协议所需的编码格式。
+
+**使用示例**
+
+```js
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+let data = {
+    id: 1, // 世界时钟id
+    timezone: 480, // 时区的值 详情请查看 上述 timezone 时区参数说明 
+    city: '北京'
+};
+veepooFeature.veepooSendAddWorldClockDataManager(data);
+```
+
+**回调**
+
+```js
+{
+    "name": "添加世界时钟", 
+    "type": 61, 
+    "state": "success", // success 成功 failure 失败
+    "CRC": 3849, 
+}
+```
+
+------
+
+
+
+#### 9.37.2 读取世界时钟
+
+**前提**
+
+设备支持世界时钟功能，且在功能汇总第四包中的**worldClockType**字段的数据为1
+
+**接口**
+
+```js
+veepooSendReadWorldClockDataManager
+```
+
+**使用示例**
+
+```js
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+let data = { 
+    CRC: 0 // 上次读取设备返回的 CRC，传 0 表示强制全量读取 
+};
+veepooFeature.veepooSendReadWorldClockDataManager(data);
+```
+
+**回调**
+
+```js
+ {
+     "name": "读取世界时钟",
+      "type": 61,
+      "state": "success",// success 成功 failure 失败
+      "Progress": 100,
+      "content": [
+          {"id": 1, "timeZone": 32, "city": "北京"}, 
+          {"id": 2, "timeZone": 16, "city": "迪拜"}
+      ]
+ }
+```
+
+------
+
+
+
+#### 9.37.3 调整时钟顺序
+
+**前提**
+
+设备支持世界时钟功能，且在功能汇总第四包中的**worldClockType**字段的数据为1
+
+**接口**
+
+```js
+veepooSendAdujstWorldClockDataManager
+```
+
+**参数**
+
+| 字段   | 类型   | 必填 | 说明                     |
+| ------ | ------ | ---- | ------------------------ |
+| fromId | number | 是   | 被移动时钟的当前位置编号 |
+| toId   | number | 是   | 目标位置编号             |
+
+> 此处的ID是指当前时钟所在的位置(content链表上的位置)，链表排序id从1开始。
+
+**使用示例**
+
+```js
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+let data = {
+    fromId: 1,
+    toId: 2
+};
+veepooFeature.veepooSendAdujstWorldClockDataManager(data);
+```
+
+**回调**
+
+```js
+ {
+     "name": "调整时钟顺序",
+     "type": 61, 
+     "state": "success",// success 成功 failure 失败
+     "CRC": 2060,
+ }
+```
+
+------
+
+
+
+#### 9.37.4 删除世界时钟
+
+**前提**
+
+设备支持世界时钟功能，且在功能汇总第四包中的**worldClockType**字段的数据为1
+
+**接口**
+
+```js
+veepooSendDeleteWorldClockDataManager
+```
+
+**参数**
+
+| 字段         | 类型   | 必填 | 说明                 |
+| ------------ | ------ | ---- | -------------------- |
+| worldClockId | number | 是   | 要删除的时钟的id编号 |
+
+**使用示例**
+
+```js
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index';
+let data = {
+    worldClockId: 1,
+};
+veepooFeature.veepooSendDeleteWorldClockDataManager(data);
+```
+
+**回调**
+
+```js
+{
+    "name": "删除世界时钟",
+    "type": 61,
+    "worldClockId": 1, 
+    "state": "success",// success 成功 failure 失败
+    "CRC": 2060,
+}
+```
+
+------
+
+
+
 ### 10. type 回调对照总表（权威）
 
 全局监听 `veepooWeiXinSDKNotifyMonitorValueChange` 中按 `res.type` 路由。下表为完整对照：
@@ -5594,6 +5936,8 @@ let score = veepooFeature.VeepooGetHrvHeartHealthScore(HrvData);
 |  54  | B3 自动测量                    | `veepooSendReadB3AutoTestFeatureDataManager`             |
 |  55  | 手动测量                       | `veepooSendManualMeasurementDataReadManager`             |
 |  58  | 压力测量                       | `veepooSendPressureTestManager`                          |
+|  60  | 运动控制                       | ` veepooSendSportControlDataManager`                     |
+|  61  | 世界时钟                       | ` veepooSendAddWorldClockDataManager` 等                 |
 |  90  | 恢复出厂设置                   | `veepooSendResettingTheDeviceDataManager`                |
 | 2000 | PTT 测量开关                   | 设备主动上报                                             |
 

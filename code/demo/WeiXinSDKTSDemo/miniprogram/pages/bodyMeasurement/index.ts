@@ -31,15 +31,19 @@ Page({
     this.notifyMonitorValueChange();
 
   },
+  // 开始检测
   BodyCompositionTestStartDataManager() {
     veepooFeature.veepooSendBodyCompositionTestStartDataManager();
   },
+  // 关闭检测
   BodyCompositionTestStopDataManager() {
     veepooFeature.veepooSendBodyCompositionTestStopDataManager()
   },
+  // 获取成分数据ID
   startGetDataId() {
     veepooFeature.veepooSendReadBodyCompositionTestIdDataManager()
   },
+  // 根据ID获取数据
   dataIdGetData() {
     let self = this;
     let deviceIdList: any = this.data.deviceIdList[0];

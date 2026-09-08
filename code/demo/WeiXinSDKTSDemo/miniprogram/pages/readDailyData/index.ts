@@ -1,6 +1,10 @@
 // pages/readDailyData/index.js
 
-import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
+import { veepooBle,veepooFeature } from '../../miniprogram_dist/index'
+
+// const {
+//   veepooSendReadDailyDataManager,
+// } = require('../../miniprogram_dist/dailyData') //读取日常数据功能
 Page({
 
   /**
@@ -14,10 +18,10 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad() {
-    let data = {
-      status: true
-    }
-    veepooBle.veepooWeiXinSDKRawDataShowStatus(data)
+    // let data = {
+    //   status: true
+    // }
+    // veepooBle.veepooWeiXinSDKRawDataShowStatus(data)
   },
 
   /**
@@ -33,15 +37,15 @@ Page({
       list.push(item / 10)
     })
 
-    let drawArr = veepooFeature.veepooGetLorentzScatterPlotData(HrvData);
-    console.log("洛伦兹散点图==>", drawArr)
-    let starIndexs = veepooFeature.veepooGetLorentzScatterPlotStarIndex(HrvData);
-    console.log("洛伦兹星级starIndexs==>", starIndexs);
-    console.log("arr=>", HrvData)
-    let similarity = veepooFeature.VeepooGetLorentzScatterPlotSimilarity(HrvData);
-    console.log("洛伦兹相似度similarity=>", similarity)
-    let score = veepooFeature.VeepooGetHrvHeartHealthScore(HrvData);
-    console.log('心脏健康指数score=>', score);
+    // let drawArr = veepooFeature.veepooGetLorentzScatterPlotData(HrvData);
+    // console.log("洛伦兹散点图==>", drawArr)
+    // let starIndexs = veepooFeature.veepooGetLorentzScatterPlotStarIndex(HrvData);
+    // console.log("洛伦兹星级starIndexs==>", starIndexs);
+    // console.log("arr=>", HrvData)
+    // let similarity = veepooFeature.VeepooGetLorentzScatterPlotSimilarity(HrvData);
+    // console.log("洛伦兹相似度similarity=>", similarity)
+    // let score = veepooFeature.VeepooGetHrvHeartHealthScore(HrvData);
+    // console.log('心脏健康指数score=>', score);
 
   },
 
@@ -89,13 +93,13 @@ Page({
           console.log('rr50Array==>', rr50Array);
           console.log('rr50Array.length==>', rr50Array.length);
 
-          let drawArr = veepooFeature.veepooGetLorentzScatterPlotData(rr50Array);
-          console.log("洛伦兹散点图==>", drawArr)
-          let starIndexs = veepooFeature.veepooGetLorentzScatterPlotStarIndex(rr50Array);
-          console.log("洛伦兹星级starIndexs==>", starIndexs);
-          console.log("arr=>", arr)
-          let similarity = veepooFeature.VeepooGetLorentzScatterPlotSimilarity(rr50Array);
-          console.log("洛伦兹相似度similarity=>", similarity)
+          // let drawArr = veepooFeature.veepooGetLorentzScatterPlotData(rr50Array);
+          // console.log("洛伦兹散点图==>", drawArr)
+          // let starIndexs = veepooFeature.veepooGetLorentzScatterPlotStarIndex(rr50Array);
+          // console.log("洛伦兹星级starIndexs==>", starIndexs);
+          // console.log("arr=>", arr)
+          // let similarity = veepooFeature.VeepooGetLorentzScatterPlotSimilarity(rr50Array);
+          // console.log("洛伦兹相似度similarity=>", similarity)
         }
       }
     })

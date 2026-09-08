@@ -243,6 +243,14 @@ Component({
       {
         name: 'YM28PRO',
         path: '/pages/YM28PROSendCommand/index'
+      },
+      {
+        name:'运动控制',
+        path:'/pages/sportControl/index'
+      },
+      {
+        name:'世界时钟',
+        path:'/pages/worldClock/index'
       }
     ],
     valData: {
@@ -288,8 +296,18 @@ Component({
       console.log('bleInfo==>',msg)
       // ==========================重连函数==========================
       // this.reConnect();
-
-
+      // wx.getConnectedBluetoothDevices({
+      //   services:['F0080001-0451-4000-B000-000000000000'],
+      //   success(res){
+      //     console.log('res.devices:',res.devices)
+      //   }
+      // })
+      wx.getConnectedBluetoothDevices({
+        services: ['F0080001-0451-4000-B000-000000000000'],
+        success (res) {
+          console.log(res)
+        }
+      })
 
       // 先判断蓝牙是否可用，再执行操作
       wx.getBluetoothAdapterState({
@@ -375,6 +393,7 @@ Component({
 
     },
     onLoad() {
+      
     },
 
     // 退出当前页面
@@ -682,6 +701,9 @@ Component({
           fail: reject
         })
       })
+    },
+    getConnectedDeviceAndPair(){
     }
+
   },
 })

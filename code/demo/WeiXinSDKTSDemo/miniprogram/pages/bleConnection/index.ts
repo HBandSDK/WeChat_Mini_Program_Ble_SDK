@@ -57,6 +57,7 @@ Page({
       })
     })
   },
+  
 
   connectionDevice(e: any) {
     let self = this;
@@ -89,16 +90,17 @@ Page({
 
     deviceList.forEach((item: any) => {
       if (item.deviceId == e.currentTarget.dataset.deviceid) {
+        console.log("点击连接的设备:",item)
         wx.setStorageSync('bleInfo', item)
         veepooBle.veepooWeiXinSDKBleConnectionServicesCharacteristicsNotifyManager(item, function (result: any) {
           console.log("result=>", result)
           if (result.connection) {
             // 获取当前服务，订阅监听
             self.notifyMonitorValueChange();
-
+            
             setTimeout(() => {
               let data = {
-                isPair: false
+                isPair: true
               }
               wx.setStorageSync('pairData', data);
               veepooFeature.veepooBlePasswordCheckManager(data)

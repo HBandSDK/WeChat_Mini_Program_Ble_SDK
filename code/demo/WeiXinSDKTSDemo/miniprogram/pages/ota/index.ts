@@ -13,6 +13,10 @@ import { getDeviceDataMac, incrementMacAddress } from "../../jieli_sdk/utils/uti
 let _Reconnect: Reconnect | null = null;
 // 回连识别日志去重：每个deviceId只打印一次(鸿蒙扫描 allowDuplicatesKey 会反复上报同一设备)
 let _reconnectPrintedDev = new Set<string>()
+// iOS回连相关变量
+let _savedOTADeviceId: string = ''
+let _savedOTADeviceMac: string = ''
+let _iosReconnectPollTimer: number = -1
 Page({
 
   /**
@@ -37,25 +41,6 @@ Page({
   onLoad() {
 
     BleDataHandler.init()
-
-    // this._RCSPWrapperEventCallback.onEvent = (event) => {
-    //   if (event.type === "onSwitchUseDevice") {
-    //     const connectedDeviceId = event.onSwitchUseDeviceEvent?.device?.deviceId
-    //     console.log(" onSwitchUseDevice111: " + connectedDeviceId);
-    //     this.setData({
-    //       connectedDeviceId: connectedDeviceId == undefined ? "" : connectedDeviceId
-    //     });
-    //     if (connectedDeviceId != undefined) {
-    //       setTimeout(() => {
-    //         console.log('==================================认证成功=====================================');
-    //         this.initOTA();
-    //       }, 300);
-    //     }
-    //   }
-    // }
-    // RCSPManager.observe(this._RCSPWrapperEventCallback)
-
-    // DeviceManager.observe(this._onRCSPBluetoothEvent)
     // 获取 veepooBle 存储的设备信息
     const bleInfo = wx.getStorageSync('bleInfo');
 
@@ -235,6 +220,14 @@ Page({
     otaConfig.isSupportNewRebootWay = false,
       otaConfig.updateFileData = this.otaData
     this.rcspOTAManager = new RcspOTAManager(rcspOpImpl)
+    
+    // 保存设备信息用于iOS自动重连
+    const currentDevice = this.rcspOTAManager.getCurrentOTADevice()
+    const currentDeviceMac = this.rcspOTAManager.getCurrentOTADeviceMac()
+    const currentDeviceId = RCSPManager.getCurrentRcspOperateWrapper()?.deviceId
+    _savedOTADeviceId = currentDeviceId || currentDevice?.deviceId || ''
+    _savedOTADeviceMac = currentDeviceMac || ''
+    console.log('[OTA保存设备信息] deviceId=' + _savedOTADeviceId + ' mac=' + _savedOTADeviceMac)
 
     this.setData({
       isOTAing: true
@@ -257,69 +250,94 @@ Page({
           otaProgressText: "正在回连设备..."
         })
 
+        const sysInfo = wx.getSystemInfoSync();
+        const isIOS = sysInfo.platform === 'ios';
+
         //###实现回连，这一部分可以自己实现
         const op: ReconnectOp = {
-          startScanDevice(): any {//开始扫描设备
-            // RCSPBluetooth.bleScan.startScan()
-            DeviceManager.starScan()
+          startScanDevice(): any {
+            if (isIOS) {
+              // iOS: 不走扫描，获取已连接设备信息
+              console.log('[iOS回连] 获取已连接设备信息')
+              setTimeout(() => { that._getIOSConnectedDevices(op) }, 1000)
+
+            } else {
+              // 其他平台: 正常扫描
+              DeviceManager.starScan()
+            }
           },
-          isReconnectDevice(scanDevice: BluetoothDevice): boolean { //判断是不是回连设备
+          isReconnectDevice(scanDevice: BluetoothDevice): boolean {
+            let result = false;
+
             const oldDevice = that.rcspOTAManager.getCurrentOTADevice()
             const oldDeviceMac = that.rcspOTAManager.getCurrentOTADeviceMac()
-            const scanName = (scanDevice.localName || scanDevice.name || '')
-            const advHex = scanDevice.advertisData
-              ? Array.from(new Uint8Array(scanDevice.advertisData)).map(b => b.toString(16).padStart(2, '0')).join('')
-              : 'EMPTY'
-            const parsedMac = scanDevice.advertisData ? getDeviceDataMac(scanDevice) : ''
-            const expectMacPlus1 = oldDeviceMac ? incrementMacAddress(oldDeviceMac) : ''
-            // 每个设备只打印一次回连识别日志(鸿蒙 allowDuplicatesKey 会反复上报同一设备)
-            if (!_reconnectPrintedDev.has(scanDevice.deviceId)) {
-              _reconnectPrintedDev.add(scanDevice.deviceId)
-              console.log('[回连识别] isSupportNewADV=' + reConnectMsg.isSupportNewReconnectADV
-                + ' name=' + scanName + ' scanId=' + scanDevice.deviceId
-                + ' oldDeviceId=' + oldDevice?.deviceId + ' oldMac=' + oldDeviceMac + ' expectMac+1=' + expectMacPlus1
-                + ' parsedMac=' + parsedMac + ' adv=' + advHex)
+            // ==========================================================================
+            if (reConnectMsg.isSupportNewReconnectADV) {
+              if (oldDeviceMac != undefined && scanDevice.advertisData) {
+                let currentMac = getDeviceDataMac(scanDevice);
+                let mac = incrementMacAddress(oldDeviceMac);
+                return currentMac === mac;
+              } else {
+                console.error("RCSP协议未拿到设备的BLE地址")
+              }
+            } else {
+
+              const isHarmony = sysInfo.platform === 'ohos';
+              if (isHarmony) {
+                const bleInfo = wx.getStorageSync('bleInfo');
+                const targetName = bleInfo?.name;
+                const scanName = scanDevice.localName || '';
+                result = !!targetName && scanName.includes(targetName);
+              } else {
+                result = oldDevice!.deviceId?.toUpperCase() == scanDevice.deviceId?.toUpperCase()
+              }
+
             }
-            // 策略1: deviceId 相同。鸿蒙上设备偶现没真正断开(系统BLE保持)，OTA重启后虚拟地址未变，可直接匹配。
-            // (系统已连接设备会被扫描到但 advertisData 为空，只能靠 deviceId 识别)
-            if (oldDevice && oldDevice.deviceId && scanDevice.deviceId &&
-              scanDevice.deviceId.toUpperCase() === oldDevice.deviceId.toUpperCase()) {
-              return true
-            }
-            // 策略2: 广播包真实MAC匹配 bleAddr 或 bleAddr+1(设备断开重启后 deviceId 变化，靠MAC识别)。
-            if (oldDeviceMac != undefined && parsedMac) {
-              const cur = parsedMac.toUpperCase()
-              if (cur === oldDeviceMac.toUpperCase() || cur === expectMacPlus1.toUpperCase()) return true
-            }
-            return false
+            return result
           },
-          connectDevice(device: BluetoothDevice): any {//连接设备
-            DeviceManager.stopScan()
-            const deviceTemp = new BluetoothDevice()
-            deviceTemp.RSSI = device.RSSI
-            deviceTemp.advertisData = device.advertisData
-            deviceTemp.advertisServiceUUIDs = device.advertisServiceUUIDs
-            deviceTemp.connectable = device.connectable
-            deviceTemp.deviceId = device.deviceId
-            deviceTemp.localName = device.localName
-            deviceTemp.serviceData = device.serviceData
-            console.log(" 回连，连接设备:" + device.deviceId);
-            that.reconnectingDeviceId = device.deviceId
-            DeviceManager.connecDevice(deviceTemp)
-            // RCSPBluetooth.bleConnect.connectDevice(deviceTemp)
+          connectDevice(device: BluetoothDevice): any {
+            if (isIOS) {
+              // iOS: 设备已连接，直接通知连接成功
+              console.log('[iOS回连] 设备已连接，通知Reconnect')
+              that.reconnectingDeviceId = device.deviceId
+              // if (_Reconnect) {
+              //   _Reconnect.onDeviceConnected(device.deviceId)
+              // }
+              DeviceManager.stopScan()
+              const deviceTemp = new BluetoothDevice()
+              deviceTemp.RSSI = device.RSSI
+              deviceTemp.advertisData = device.advertisData
+              deviceTemp.advertisServiceUUIDs = device.advertisServiceUUIDs
+              deviceTemp.connectable = device.connectable
+              deviceTemp.deviceId = device.deviceId
+              deviceTemp.localName = device.localName
+              deviceTemp.serviceData = device.serviceData
+              that.reconnectingDeviceId = device.deviceId
+              DeviceManager.connecDevice(deviceTemp)
+            } else {
+              DeviceManager.stopScan()
+              const deviceTemp = new BluetoothDevice()
+              deviceTemp.RSSI = device.RSSI
+              deviceTemp.advertisData = device.advertisData
+              deviceTemp.advertisServiceUUIDs = device.advertisServiceUUIDs
+              deviceTemp.connectable = device.connectable
+              deviceTemp.deviceId = device.deviceId
+              deviceTemp.localName = device.localName
+              deviceTemp.serviceData = device.serviceData
+              that.reconnectingDeviceId = device.deviceId
+              DeviceManager.connecDevice(deviceTemp)
+            }
           }
         }
         const callback: ReconnectCallback = {
           onReconnectSuccess(deviceId: string) {
             console.error("onReconnectSuccess : " + deviceId);
-            // /todo 回连成功应该把新设备和连接状态同步给 rcspOTA/
             if (that.rcspOTAManager) {
               that.rcspOTAManager.updateOTADevice(new Device(deviceId))
             }
-            // that.rcspOTAManager.updateOTADevice(new Device(deviceId))
             _Reconnect = null;
           },
-          onReconnectFailed() {//不用处理，库里会自动超时
+          onReconnectFailed() {
             console.error("onReconnectFailed : ");
             _Reconnect = null;
           }
@@ -425,6 +443,127 @@ Page({
       }
     )
     return hexArr.join(':')
+  },
+
+  /**
+   * iOS获取已连接设备信息
+   * 将获取到的设备信息推送到Reconnect流程中
+   */
+  _getIOSConnectedDevices(op: ReconnectOp) {
+    // console.log('[iOS回连] 获取已连接设备，目标deviceId=' + _savedOTADeviceId)
+
+    wx.getConnectedBluetoothDevices({
+      services: ['F0080001-0451-4000-B000-000000000000'],
+      success: (res) => {
+        const devices = res.devices || []
+        console.log('[iOS回连] 已连接设备数量=' + devices.length)
+
+        if (devices.length === 0) {
+          console.log('[iOS回连] 暂无已连接设备，等待自动重连...')
+          this._pollIOSConnectedDevices(op)
+          return
+        }
+
+        // 将已连接设备构造成BluetoothDevice并推送到Reconnect
+        for (const connectedDevice of devices) {
+          const device = new BluetoothDevice()
+          device.deviceId = connectedDevice.deviceId
+          device.name = connectedDevice.name || ''
+          device.RSSI = -50 // 默认信号强度
+
+          console.log('[iOS回连] 推送到Reconnect: ' + device.deviceId)
+
+          // 推送到Reconnect流程
+          if (_Reconnect) {
+            _Reconnect.onDiscoveryDevice(device)
+          }
+        }
+      },
+      fail: (err) => {
+        console.log('[iOS回连] getConnectedBluetoothDevices失败：' + JSON.stringify(err))
+        this._pollIOSConnectedDevices(op)
+      }
+    })
+  },
+
+  /**
+   * iOS轮询获取已连接设备（等待系统自动重连）
+   * 超时后回退到扫描模式
+   */
+  _pollIOSConnectedDevices(op: ReconnectOp) {
+    let pollCount = 0
+    const maxPollCount = 15
+    const pollInterval = 1000
+    const that = this
+
+    const startPolling = () => {
+      if (_iosReconnectPollTimer !== -1) {
+        clearTimeout(_iosReconnectPollTimer)
+      }
+      _iosReconnectPollTimer = setTimeout(() => {
+        pollCount++
+        console.log('[iOS回连] 轮询检测第' + pollCount + '次')
+
+        wx.getConnectedBluetoothDevices({
+          services: ['F0080001-0451-4000-B000-000000000000'],
+          success: (res) => {
+            const devices = res.devices || []
+            console.log('[iOS回连] 轮询检测到设备数量=' + devices.length)
+
+            if (devices.length > 0) {
+              // 将已连接设备推送到Reconnect
+              for (const connectedDevice of devices) {
+                const device = new BluetoothDevice()
+                device.deviceId = connectedDevice.deviceId
+                device.localName = connectedDevice.localName || ''
+                device.RSSI = -50
+
+                console.log('[iOS回连] 轮询发现设备，推送到Reconnect: ' + device.deviceId)
+                if (_Reconnect) {
+                  _Reconnect.onDiscoveryDevice(device)
+                }
+              }
+              return // 找到设备，结束轮询
+            }
+
+            if (pollCount >= maxPollCount) {
+              console.log('[iOS回连] 轮询超时，回退到扫描模式')
+              clearTimeout(_iosReconnectPollTimer)
+              _iosReconnectPollTimer = -1
+              that._fallbackToScan(op)
+              return
+            }
+            startPolling()
+          },
+          fail: () => {
+            if (pollCount >= maxPollCount) {
+              console.log('[iOS回连] 轮询失败超时，回退到扫描模式')
+              clearTimeout(_iosReconnectPollTimer)
+              _iosReconnectPollTimer = -1
+              that._fallbackToScan(op)
+              return
+            }
+            startPolling()
+          }
+        })
+      }, pollInterval)
+    }
+    startPolling()
+  },
+  
+  /**
+   * iOS回退到扫描模式
+   * 当没有已连接设备时，使用普通扫描方式回连
+   */
+  _fallbackToScan(op: ReconnectOp) {
+    console.log('[iOS回连] 回退到扫描模式')
+    // 修改op的startScanDevice为真正的扫描
+    op.startScanDevice = () => {
+      console.log('[iOS回连] 开始扫描设备')
+      DeviceManager.starScan()
+    }
+    // 启动扫描
+    op.startScanDevice()
   },
 
   _onRCSPBluetoothEvent(event: DeviceBluetooth.DeviceBluetoothEvent) {

@@ -111,7 +111,7 @@ Page({
     let that = this;
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
       console.log(" YM28PRO设置数据读取及下发 监听蓝牙回调=>", e);
-      if (e.type == 58) {
+      if (e.type == 59) {
         if (e.control == '1' || e.control == '2') {
           that.setData({
             content: e.content,

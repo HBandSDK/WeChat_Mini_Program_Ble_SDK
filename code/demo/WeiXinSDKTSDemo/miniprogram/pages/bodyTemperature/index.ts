@@ -1,5 +1,8 @@
 
-import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
+import { veepooBle,veepooFeature } from '../../miniprogram_dist/index'
+// const { 
+//   veepooSendTemperatureMeasurementSwitchManager 
+// } =require( '../../miniprogram_dist/temperature')//手动读取体温
 Page({
 
   /**

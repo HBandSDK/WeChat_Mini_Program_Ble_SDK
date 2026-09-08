@@ -1,0 +1,78 @@
+<view class="container">
+  <view class="section">
+    <view class="section-title">读取世界时钟</view>
+    <view class="btn-row">
+      <button class="btn btn-primary" bindtap="readWorldClock">读取</button>
+    </view>
+    <view wx:if="{{progress > 0 && progress < 100}}" class="progress">进度: {{progress}}%</view>
+    <view wx:if="{{readState}}" class="state">状态: {{readState}}</view>
+    <view wx:if="{{clockList.length > 0}}" class="clock-list">
+      <view class="clock-item" wx:for="{{clockList}}" wx:key="id">
+        <view class="clock-line">ID: {{item.id}}</view>
+        <view class="clock-line">城市: {{item.city}}</view>
+        <view class="clock-line">时区偏移: {{item.timeZone}} (×15分钟)</view>
+      </view>
+    </view>
+    <view wx:else class="empty-tip">暂无数据</view>
+  </view>
+
+  <view class="divider"></view>
+
+  <view class="section">
+    <view class="section-title">添加世界时钟</view>
+    <view class="input-row">
+      <text class="label">id:</text>
+      <input class="input" value="{{id}}" bindinput="onIdInput" placeholder="如: 1、2、3" />
+    </view>
+    <view class="input-row">
+      <text class="label">城市:</text>
+      <input class="input" value="{{addCity}}" bindinput="onCityInput" placeholder="如: 北京" />
+    </view>
+    <view class="input-row">
+      <text class="label">时区偏移(×15分钟):</text>
+      <input class="input" value="{{addTimezone}}" bindinput="onTimezoneInput" placeholder="如: 0/-32/36" />
+    </view>
+    <view class="btn-row">
+      <button class="btn btn-success" bindtap="addWorldClock">添加</button>
+    </view>
+  </view>
+
+  <view class="divider"></view>
+
+  <view class="section">
+    <view class="section-title">调整时钟顺序</view>
+    <view class="input-row">
+      <text class="label">From ID:</text>
+      <input class="input" type="number" value="{{fromId}}" bindinput="onFromIdInput" />
+    </view>
+    <view class="input-row">
+      <text class="label">To ID:</text>
+      <input class="input" type="number" value="{{toId}}" bindinput="onToIdInput" />
+    </view>
+    <view class="btn-row">
+      <button class="btn btn-warning" bindtap="adjustWorldClock">调整</button>
+    </view>
+  </view>
+
+  <view class="divider"></view>
+
+  <view class="section">
+    <view class="section-title">删除世界时钟</view>
+    <view class="input-row">
+      <text class="label">删除 ID:</text>
+      <input class="input" type="number" value="{{deleteId}}" bindinput="onDeleteIdInput" />
+    </view>
+    <view class="btn-row">
+      <button class="btn btn-danger" bindtap="deleteWorldClock">删除</button>
+    </view>
+  </view>
+
+  <view class="divider"></view>
+
+  <!-- <view class="section">
+    <view class="section-title">蓝牙回调日志</view>
+    <scroll-view class="log-box" scroll-y enable-flex>
+      <text class="log-text">{{logText || '暂无日志'}}</text>
+    </scroll-view>
+  </view> -->
+</view>

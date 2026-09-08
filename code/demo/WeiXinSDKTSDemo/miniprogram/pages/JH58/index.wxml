@@ -13,12 +13,7 @@
     <view class="mode-state-item" catch:tap="readOrigData1">读取模式1数据</view>
     <view class="mode-state-item" catch:tap="readOrigData2">读取模式2数据</view>
   </view>
-  <text>JH58 自动测量</text>
-  <view class="box-mode-state">
-    <view class="mode-state-item" catch:tap="autoTest1">开启测量</view>
-    <view class="mode-state-item" catch:tap="autoTest2">断点读取</view>
-    <view class="mode-state-item" catch:tap="autoTest3">关闭测量</view>
-  </view>
+ 
 
   <view class="box-mode-state">
     <view class="section">
@@ -43,4 +38,12 @@
 
   <view wx:if="{{modet}}">当前模式：{{modeType}}</view>
   <view>读取进度：{{progress}}</view>
+
+
+  <view class="auto-test-box">JH58 自动测量</view>
+  <view class="box-mode-state">
+    <view class="mode-state-item" catch:tap="autoTest1">开启测量</view>
+    <view class="mode-state-item" catch:tap="autoTest2">断点读取</view>
+    <view class="mode-state-item" catch:tap="autoTest3">关闭测量</view>
+  </view>
 </view>

@@ -254,23 +254,26 @@ Page({
   },
 
 
+  // 开启测量且开始传输
   autoTest1() {
     let data = {
       state: 1
     };
-    veepooFeature.veepooJH58AutoTestManager(data);
+    veepooFeature.veepooJH58RealTimeMeasureManager(data);
   },
+  // 开启测量且断点传输
   autoTest2() {
     let data = {
       state: 2
     };
-    veepooFeature.veepooJH58AutoTestManager(data);
+    veepooFeature.veepooJH58RealTimeMeasureManager(data);
   },
+   // 关闭测量
   autoTest3() {
     let data = {
       state: 3
     };
-    veepooFeature.veepooJH58AutoTestManager(data);
+    veepooFeature.veepooJH58RealTimeMeasureManager(data);
   },
 
 

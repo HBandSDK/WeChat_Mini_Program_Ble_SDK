@@ -80,7 +80,7 @@ export class RcspOTA implements IOTAOp {
         // logv("onRcspCommand : " + command.getOpCode());
         if (device == null) return
         if (command instanceof CmdReadFileBlock) {//设备请求文件数据
-          logv("onRcspCommand : 设备请求文件数据");
+          // logv("onRcspCommand : 设备请求文件数据");
           const readFileBlock = command as CmdReadFileBlock;
           const offset = readFileBlock.getParam().offset;
           const len = readFileBlock.getParam().len;

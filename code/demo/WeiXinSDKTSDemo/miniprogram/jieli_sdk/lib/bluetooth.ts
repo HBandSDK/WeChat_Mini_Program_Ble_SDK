@@ -620,20 +620,16 @@ class ConnectImpl implements IConnect {
         },
         fail: () => {
           wx.getBLEMTU({
-            writeType: "writeNoResponse",
             deviceId: device.deviceId, success: res => {
               logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
               this._updateDeviceIdMtu(device.deviceId, res.mtu)
               this._onMTUChange(device, res.mtu)
               this._getBLEDeviceServices(device);
             }, fail: res => {
-              loge('调节MTU失败，' + JSON.stringify(res), this._tag);
-              this.disconnect(device)
-              const error: BluetoothError = {
-                errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
-                errMsg: 'connection fail'
-              }
-              this._onConnectFailed(device, error)
+              loge('调节MTU失败，使用默认MTU，' + JSON.stringify(res), this._tag);
+              this._updateDeviceIdMtu(device.deviceId, 20)
+              this._onMTUChange(device, 20)
+              this._getBLEDeviceServices(device);
             }
           })
         }
@@ -641,20 +637,16 @@ class ConnectImpl implements IConnect {
     } else {
       setTimeout(() => {
         wx.getBLEMTU({
-          writeType: "writeNoResponse",
           deviceId: device.deviceId, success: res => {
             logv('调节MTU成功，' + JSON.stringify(res.mtu), this._tag);
             this._updateDeviceIdMtu(device.deviceId, res.mtu)
             this._onMTUChange(device, res.mtu)
             this._getBLEDeviceServices(device);
           }, fail: res => {
-            loge('调节MTU失败，' + JSON.stringify(res), this._tag);
-            this.disconnect(device)
-            const error: BluetoothError = {
-              errCode: BluetoothErrorConstant.ERROR_CONNECTION_FAIL,
-              errMsg: 'connection fail'
-            }
-            this._onConnectFailed(device, error)
+            loge('调节MTU失败，使用默认MTU，' + JSON.stringify(res), this._tag);
+            this._updateDeviceIdMtu(device.deviceId, 20)
+            this._onMTUChange(device, 20)
+            this._getBLEDeviceServices(device);
           }
         })
       }, 1000);

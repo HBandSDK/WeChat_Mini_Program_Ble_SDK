@@ -1,0 +1,46 @@
+<!-- pages/sportControl/index.wxml -->
+<view class="box">
+  <!-- 运动控制按钮组 -->
+  <text>1.输入运动模式点击控制按钮</text>
+  <view class="btn_box">
+    <view class="box-mode-state">
+      <view class="mode-state-item" catch:tap="startSport">开启设备运动</view>
+      <view class="mode-state-item" catch:tap="pausedSport">暂停设备运动</view>
+    </view>
+    <view class="box-mode-state">
+      <view class="mode-state-item" catch:tap="continueSport">继续设备运动</view>
+      <view class="mode-state-item" catch:tap="stopSport">停止设备运动</view>
+    </view>
+  </view>
+
+  <!-- 运动模式输入 -->
+  <view class="input">
+    <text>运动模式：</text>
+    <input type="number" placeholder="输入运动模式" bindinput="inputChange2" />
+  </view>
+
+  <text>2.点击操作按钮后开始读取</text>
+  <!-- 读取控制按钮 -->
+  <button style="margin-top: 20px;" catch:tap="startReadSportControl">
+    {{ isReading ? '停止读取' : '开始读取' }}
+  </button>
+
+  <!-- 实时运动数据显示 -->
+  <view class="data-box" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+    <view class="data-title" style="font-weight: bold; margin-bottom: 8px;">实时运动数据</view>
+    <view>运动模式：{{ sportData.sportModel }}</view>
+    <!-- <view>操作码：{{ opCodeText }}（{{ sportData.opCode }}）</view> -->
+    <view>运行状态：{{ sportData.runState }}</view>
+    <view>设备状态：{{ sportData.deviceState }}</view>
+    <view>运动时间：{{ sportData.exerciseTimeStamp }}</view>
+    <view>运动距离：{{ sportData.exerciseDistance }} 公里</view>
+    <view>心率：{{ sportData.heartRate }} 次/分</view>
+    <view>卡路里：{{ sportData.calories }} 千卡</view>
+    <view>配速：{{ sportData.pace }} /公里</view>
+    <view>速度：{{ sportData.speed }} 公里/小时</view>
+    <view wx:if="{{ sportData.gnssInfo }}">
+      <view>GNSS类型：{{ sportData.gnssInfo.isGnssType ? '是' : '否' }}</view>
+      <view>GNSS信号：{{ sportData.gnssInfo.gnssSignal }}</view>
+    </view>
+  </view>
+</view>
