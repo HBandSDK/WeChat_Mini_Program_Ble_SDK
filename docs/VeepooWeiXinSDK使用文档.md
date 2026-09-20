@@ -5136,26 +5136,114 @@ veepooFeature.veepooSendMicroCheckDataManager({
 **回调**
 
 ```js
-// 微体检返回
+
+// 测量进行中（进度包）
 {
     type: 53,
-    name: "微体检",
-    control: 1, // 1 开启 2 关闭
-    dataType: 1,// 数据类型  0 进度包 1 测量成功报告数据  2 测量失败无结果数据 3 设备正忙 4 设备低电
-    progress: 100,// 进度
+    name: "微体检测量",
+    dataType: 0,
+    runState: "Measuring",       // 测量状态
+    progress: 50                 // 测量进度 0~100
+}
+
+// 测量成功报告（dataType=1）
+{
+    type: 53,
+    name: "微体检测量",
+    dataType: 1,
+    runState: "ReportSuccess",
+    progress: 100,
     content: {
-      heartRate: 0,// 心率
-      bloodOxygen:0,// 血氧
-      pressure: 0,//  压力
-      emotion: 0,// 情绪 值域[-10,10]
-      fatigueLevel: 0,// 疲劳度
-      bloodSugar: 0,// 血糖
-      bodyTemperature: 0,// 体温
-      highPressure: 0,// 高压
-      lowPressure: 0,// 低压
-      hrv:0,// hrv
+        heartRate: 79,           // 心率
+        bloodOxygen: 98,         // 血氧 %
+        pressure: 11,            // 压力 0~100
+        emotion: 0,              // 情绪 [-10,10]
+        fatigueLevel: 0,         // 疲劳度 0~10
+        bloodSugar: 5.31,        // 血糖
+        bodyTemperature: 36.5,   // 体温
+        highPressure: 119,       // 收缩压
+        lowPressure: 86          // 舒张压
     }
- }
+}
+
+// 测量成功报告（dataType=5，扩展数据，设备按支持的功能返回对应字段）
+{
+    type: 53,
+    name: "微体检测量",
+    dataType: 5,
+    runState: "ReportSuccess",
+    current: 1,                  // 当前包序号
+    total: 1,                   // 总包数
+    content: {
+        basicInfo: {            // 基本信息
+            gender: "male",    // male / female
+            age: 30,
+            height: 175,       // cm
+            weight: 70         // kg
+        },
+        heartRate: 79,         // 平均心率 30~220
+        bloodOxygen: 98,        // 血氧 70~99 %
+        opticalBloodPressure: {// 光电血压 0~300
+            highPressure: 120,
+            lowPressure: 80
+        },
+        pumpBloodPressure: {   // 气泵血压 0~300
+            highPressure: 120,
+            lowPressure: 80
+        },
+        bloodSugar: {          // 血糖
+            displayType: "value", // value 显示值 / level 显示等级
+            value: 531
+        },
+        bodyTemperature: {    // 体温
+            rawTemperature: 36.5,// 原始温度
+            bodyTemperature: 36.5 // 体温
+        },
+        pressure: 11,          // 压力 0~100
+        emotion: 0,            // 情绪 [-10,10]
+        fatigueLevel: 0,       // 疲劳度 0~10
+        hrv: 101,              // HRV 1~210
+        skinElectrical: {      // 皮电
+            emotion: 0,        // 情绪 [-10,10]
+            skinMoisture: 50,  // 皮肤含水量 [1,99]
+            depressionRisk: 0, // 抑郁症风险 0:低 1:中 2:高
+            snsActivation: 50, // 交感神经活跃度 [1,99]
+            cortisol: 150      // 皮质醇浓度 [0,500] ug/L
+        },
+        bloodComponent: {      // 血液成分
+            uricAcid: 36.5,    // 尿酸 μmol/L
+            cholesterol: 4.5,  // 总胆固醇 mmol/L
+            triglyceride: 1.2, // 甘油三酯 mmol/L
+            highDensityLipoprotein: 1.5, // 高密度脂蛋白 mmol/L
+            lowDensityLipoprotein: 2.3   // 低密度脂蛋白 mmol/L
+        },
+        bodyComposition: {     // 身体成分
+            bmi: 22.9,         // BMI
+            bodyFatRate: 15.0, // 体脂率
+            fatMass: 12.0,     // 脂肪量
+            leanBodyMass: 58.0,// 去脂体重
+            muscleRate: 40.0,  // 肌肉率
+            muscleMass: 30.0,  // 肌肉量
+            subcutaneousFat: 10.0, // 皮下脂肪
+            bodyWater: 50.0,   // 体内水分
+            waterContent: 50.0,// 含水量
+            skeletalMuscleRate: 30.0, // 骨骼肌率
+            boneMass: 3.5,     // 骨量
+            proteinRate: 16.0, // 蛋白质占比
+            proteinMass: 10.0, // 蛋白质量
+            basalMetabolicRate: 1500 // 基础代谢率
+        }
+    }
+}
+
+// 其它状态（测量失败 / 设备正忙 / 设备低电 / 佩戴未通过 / ECG导联脱落）
+{
+    type: 53,
+    name: "微体检测量",
+    dataType: 2,
+    runState: "MeasurementFailed",
+    progress: 100
+}
  
  
  // 每秒心率
@@ -5172,10 +5260,91 @@ veepooFeature.veepooSendMicroCheckDataManager({
  // ppg数据
  {
  	"name": "ppg数据", 
- 	"type": 36,
+ 	"type": 54,
     "content": [48703, 48610, 48542, 48426, 48116, 48125, 48139, 48047, 48012, 48185, 48718, 49417, 49726, 50051, 50409, 50424, 50425, 50538, 50463, 50285, 50208, 50166, 50100, 49981, 50005]
  }
 ```
+
+##### 字段说明
+
+**runState 测量状态**
+
+| runState          | 说明                     | 是否携带 content |
+| ----------------- | ------------------------ | ---------------- |
+| Measuring         | 测量进行中               | 否               |
+| ReportSuccess     | 测量成功，返回报告数据   | 是               |
+| MeasurementFailed | 测量失败，无结果         | 否               |
+| DeviceBusy        | 设备正忙，正在测其它数据 | 否               |
+| LowBattery        | 设备低电                 | 否               |
+| WearingNotPassed  | 佩戴未通过               | 否               |
+| ECGLeadOff        | ECG 导联脱落             | 否               |
+
+**dataType=1 content 字段**
+
+| 字段            | 说明          |
+| --------------- | ------------- |
+| heartRate       | 心率          |
+| bloodOxygen     | 血氧 %        |
+| pressure        | 压力 0~100    |
+| emotion         | 情绪 [-10,10] |
+| fatigueLevel    | 疲劳度 0~10   |
+| bloodSugar      | 血糖          |
+| bodyTemperature | 体温          |
+| highPressure    | 收缩压        |
+| lowPressure     | 舒张压        |
+
+**dataType=5 content 字段（设备按支持的功能返回对应字段，未开启的功能不返回）**
+
+| 字段                 | 说明                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| basicInfo            | 基本信息：gender(male 男/female 女) / age / height(**cm**) / weight(**kg**) |
+| heartRate            | 平均心率 **30~220**                                          |
+| bloodOxygen          | 血氧 **70~99 %**                                             |
+| opticalBloodPressure | 光电血压：highPressure / lowPressure，**0~300**              |
+| pumpBloodPressure    | 气泵血压：highPressure / lowPressure，**0~300**              |
+| bloodSugar           | 血糖：displayType(value 血糖值/level 血糖等级) + value       |
+| bodyTemperature      | 体温：rawTemperature 原始温度 + bodyTemperature  体温        |
+| pressure             | 压力 **0~100**                                               |
+| emotion              | 情绪 **[-10,10]**                                            |
+| fatigueLevel         | 疲劳度 **0~10**                                              |
+| hrv                  | HRV **1~210**                                                |
+| skinElectrical       | 皮电：见下表                                                 |
+| bloodComponent       | 血液成分：见下表                                             |
+| bodyComposition      | 身体成分：见下表                                             |
+
+**skinElectrical 皮电字段**
+
+通用单位ug/dL或nmol/L，10ug/L = 1ug/dL，1nmol/L = 0.36247ug/L， 1nmol/L = 0.036247 ug/dL
+
+| 字段           | 有效范围                                  | 说明           |
+| -------------- | ----------------------------------------- | -------------- |
+| emotion        | [-10,10]                                  | 情绪           |
+| skinMoisture   | [1,99]                                    | 皮肤含水量     |
+| depressionRisk | [0,2], 0:低风险，1:中风险，2:高风险       | 抑郁症风险     |
+| snsActivation  | [1,99]                                    | 交感神经活跃度 |
+| cortisol       | 有效范围[0，500]ug/L,正常范围[0，230]ug/L | 皮质醇浓度     |
+
+**bloodComponent 血液成分子字段**
+
+| 字段                   | 说明                     |
+| ---------------------- | ------------------------ |
+| uricAcid               | 尿酸 ，单位μmol/L        |
+| cholesterol            | 总胆固醇，单位mmol/L     |
+| triglyceride           | 甘油三酸酯，单位mmol/L   |
+| highDensityLipoprotein | 高密度脂蛋白，单位mmol/L |
+| lowDensityLipoprotein  | 低密度脂蛋白，单位mmol/L |
+
+**bodyComposition 身体成分子字段**
+
+| 字段         | 有效范围        | 说明     | 字段               | 有效范围       | 说明       |
+| ------------ | --------------- | -------- | ------------------ | -------------- | ---------- |
+| bmi          | 【4.0，1114.0】 | BMI      | subcutaneousFat    | 【1.0，47.0】  | 皮下脂肪   |
+| bodyFatRate  | 【2.0，48.0】   | 体脂率   | bodyWater          | 【28.0，79.0】 | 体内水分   |
+| fatMass      | 【10.0，248.0】 | 脂肪量   | waterContent       | 【7.0，217.0】 | 含水量     |
+| leanBodyMass | 【1.0，132.0】  | 去脂体重 | skeletalMuscleRate | 【13.0，69.0】 | 骨骼肌率   |
+| muscleRate   | 【39.0，90.0】  | 肌肉率   | boneMass           | 【2.3，4.8】   | 骨量       |
+| muscleMass   | 【9.0，248.0】  | 肌肉量   | proteinRate        | 【4.0，26.0】  | 蛋白质占比 |
+| proteinMass  | 【1.0，71.0】   | 蛋白质量 | basalMetabolicRate | 【25，14995】  | 基础代谢率 |
 
 ### 9.33 B3 自动测量(type=54)
 

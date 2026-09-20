@@ -1,82 +1,122 @@
-<view class="container">
+<view class="box">
 
-  <view class="title">微体检测量</view>
-
-  <!-- 进度区域 -->
-  <view class="progress-area" wx:if="{{isMeasuring}}">
-    <view class="progress-text">测量中...</view>
-    <progress class="progress-bar" percent="{{progress}}" show-info stroke-width="8" activeColor="#07c160" />
-    <view class="progress-tip">请保持静止，正在检测多项健康指标...</view>
+  <!-- 标题 -->
+  <view class="header">
+    <text class="header-title">微体检测量</text>
   </view>
 
-  <!-- 结果区域 -->
-  <view class="result-area" wx:if="{{hasResult}}">
-    <view class="result-title">检测结果</view>
-
-    <view class="result-grid">
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.heartRate}}</view>
-        <view class="item-label">心率(bpm)</view>
-      </view>
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.bloodOxygen}}</view>
-        <view class="item-label">血氧(%)</view>
-      </view>
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.pressure}}</view>
-        <view class="item-label">压力</view>
-      </view>
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.hrv}}</view>
-        <view class="item-label">HRV(ms)</view>
-      </view>
+  <!-- 进度 -->
+  <view class="progress-wrap">
+    <view class="progress-text">测量进度：{{progress}}%</view>
+    <view class="progress-bar">
+      <view class="progress-bar-fill" style="width: {{progress}}%"></view>
     </view>
-
-    <view class="result-grid">
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.highPressure}}/{{microCheckData.lowPressure}}</view>
-        <view class="item-label">血压(mmHg)</view>
-      </view>
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.bodyTemperature}}</view>
-        <view class="item-label">体温(℃)</view>
-      </view>
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.bloodSugar}}</view>
-        <view class="item-label">血糖(mmol/L)</view>
-      </view>
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.emotion}}</view>
-        <view class="item-label">情绪指数</view>
-      </view>
-    </view>
-
-    <view class="result-grid">
-      <view class="result-item">
-        <view class="item-value">{{microCheckData.fatigueLevel}}</view>
-        <view class="item-label">疲劳度</view>
-      </view>
-    </view>
+    <view class="progress-sub" wx:if="{{measuringTip && isMeasuring}}">{{measuringTip}}</view>
+    <view class="progress-sub" wx:elif="{{liveHeartRate && isMeasuring}}">实时心率：{{liveHeartRate}} bpm</view>
   </view>
 
   <!-- 错误提示 -->
-  <view class="error-area" wx:if="{{errorMsg}}">
-    <view class="error-text">{{errorMsg}}</view>
+  <view class="error-text" wx:if="{{errorMsg && !isMeasuring}}">{{errorMsg}}</view>
+
+  <!-- 核心指标 -->
+  <view class="card">
+    <view class="card-title">核心指标</view>
+    <view class="data-grid">
+      <view class="data-item">
+        <text class="data-label">心率(bpm)</text>
+        <text class="data-value">{{report.heartRate !== undefined ? report.heartRate : '--'}}</text>
+      </view>
+      <view class="data-item">
+        <text class="data-label">血氧(%)</text>
+        <text class="data-value">{{report.bloodOxygen !== undefined ? report.bloodOxygen : '--'}}</text>
+      </view>
+      <view class="data-item">
+        <text class="data-label">压力</text>
+        <text class="data-value">{{report.pressure !== undefined ? report.pressure : '--'}}</text>
+      </view>
+      <view class="data-item">
+        <text class="data-label">HRV(ms)</text>
+        <text class="data-value">{{report.hrv !== undefined ? report.hrv : '--'}}</text>
+      </view>
+      <view class="data-item">
+        <text class="data-label">血压(mmHg)</text>
+        <text class="data-value">{{report.bloodPressure !== undefined ? report.bloodPressure : '--'}}</text>
+      </view>
+      <view class="data-item">
+        <text class="data-label">体温(℃)</text>
+        <text class="data-value">{{report.bodyTemperature !== undefined ? report.bodyTemperature : '--'}}</text>
+      </view>
+      <view class="data-item">
+        <text class="data-label">血糖</text>
+        <text class="data-value">{{report.bloodSugar !== undefined ? report.bloodSugar : '--'}}</text>
+      </view>
+      <view class="data-item">
+        <text class="data-label">情绪</text>
+        <text class="data-value">{{report.emotion !== undefined ? report.emotion : '--'}}</text>
+      </view>
+      <view class="data-item">
+        <text class="data-label">疲劳度</text>
+        <text class="data-value">{{report.fatigueLevel !== undefined ? report.fatigueLevel : '--'}}</text>
+      </view>
+    </view>
   </view>
 
-  <!-- 按钮区域 -->
-  <view class="btn-area">
+  <!-- 个人基本信息 -->
+  <view class="card" wx:if="{{report.basicInfoList.length}}">
+    <view class="card-title">个人基本信息</view>
+    <view class="data-grid">
+      <view class="data-item" wx:for="{{report.basicInfoList}}" wx:key="label">
+        <text class="data-label">{{item.label}}</text>
+        <text class="data-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 皮肤电检测 -->
+  <view class="card" wx:if="{{report.skinList.length}}">
+    <view class="card-title">皮肤电检测</view>
+    <view class="data-grid">
+      <view class="data-item" wx:for="{{report.skinList}}" wx:key="label">
+        <text class="data-label">{{item.label}}</text>
+        <text class="data-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 血液成分 -->
+  <view class="card" wx:if="{{report.bloodComponentList.length}}">
+    <view class="card-title">血液成分</view>
+    <view class="data-grid">
+      <view class="data-item" wx:for="{{report.bloodComponentList}}" wx:key="label">
+        <text class="data-label">{{item.label}}</text>
+        <text class="data-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 身体成分 -->
+  <view class="card" wx:if="{{report.bodyCompositionList.length}}">
+    <view class="card-title">身体成分</view>
+    <view class="data-grid">
+      <view class="data-item" wx:for="{{report.bodyCompositionList}}" wx:key="label">
+        <text class="data-label">{{item.label}}</text>
+        <text class="data-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 按钮 -->
+  <view class="btn-group">
     <button class="btn btn-start" catch:tap="microCheckStart" disabled="{{isMeasuring}}">开始测量</button>
     <button class="btn btn-stop" catch:tap="microCheckStop" disabled="{{!isMeasuring}}">结束测量</button>
   </view>
 
-  <!-- 说明区域 -->
-  <view class="info-area">
-    <view class="info-title">微体检说明：</view>
-    <view class="info-item">微体检是一次性检测多项健康指标的功能</view>
-    <view class="info-item">检测项目包括：心率、血氧、压力、HRV、血压、体温、血糖、情绪、疲劳度</view>
-    <view class="info-item">测量时请保持静止，确保设备贴合手腕</view>
-    <view class="info-item">测量结果仅供参考，如有异常请咨询医生</view>
+  <!-- 说明 -->
+  <view class="card">
+    <view class="card-title">说明</view>
+    <view class="info-item">· 微体检一次性检测心率、血氧、压力、HRV、血压、体温、血糖、情绪、疲劳度等指标</view>
+    <view class="info-item">· 测量时请保持静止，确保设备贴合手腕</view>
+    <view class="info-item">· 未返回的字段显示 --，测量结果仅供参考，如有异常请咨询医生</view>
   </view>
 
 </view>

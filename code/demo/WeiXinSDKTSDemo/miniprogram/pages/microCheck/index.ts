@@ -1,6 +1,53 @@
 // pages/microCheck/index.ts
 import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
 
+// 非成功状态提示文案（2失败 3设备忙 4低电 6佩戴未通过 7导联脱落）
+const STATE_TIPS: Record<number, string> = {
+  2: '测量失败，无结果数据',
+  3: '设备正忙，正在测其它数据，请稍后再试',
+  4: '设备电量低，请充电后再试',
+  6: '佩戴未通过，请调整佩戴姿势',
+  7: 'ECG导联脱落，请重新佩戴'
+}
+
+// 身体成分字段展示配置（设备返回哪些就展示哪些）
+const BODY_COMPOSITION_FIELDS: { key: string; label: string }[] = [
+  { key: 'bmi', label: 'BMI' },
+  { key: 'bodyFatRate', label: '体脂率(%)' },
+  { key: 'fatMass', label: '脂肪量(kg)' },
+  { key: 'leanBodyMass', label: '去脂体重(kg)' },
+  { key: 'muscleRate', label: '肌肉率(%)' },
+  { key: 'muscleMass', label: '肌肉量(kg)' },
+  { key: 'subcutaneousFat', label: '皮下脂肪(%)' },
+  { key: 'bodyWater', label: '体内水分(%)' },
+  { key: 'waterContent', label: '含水量(%)' },
+  { key: 'skeletalMuscleRate', label: '骨骼肌率(%)' },
+  { key: 'boneMass', label: '骨量(kg)' },
+  { key: 'proteinRate', label: '蛋白质占比(%)' },
+  { key: 'proteinMass', label: '蛋白质量(kg)' },
+  { key: 'basalMetabolicRate', label: '基础代谢率(kcal)' }
+]
+
+// 空报告：字段为空时页面显示 --
+const createEmptyReport = () => ({
+  heartRate: undefined as any,       // 心率
+  bloodOxygen: undefined as any,     // 血氧
+  pressure: undefined as any,        // 压力
+  hrv: undefined as any,             // HRV
+  bloodPressure: undefined as any,   // 血压 120/80
+  bodyTemperature: undefined as any, // 体温
+  bloodSugar: undefined as any,      // 血糖
+  emotion: undefined as any,         // 情绪
+  fatigueLevel: undefined as any,    // 疲劳度
+  basicInfoList: [] as any[],        // 个人基本信息
+  skinList: [] as any[],             // 皮电
+  bloodComponentList: [] as any[],   // 血液成分
+  bodyCompositionList: [] as any[]   // 身体成分
+})
+
+// dataType=5 报告可能分包上报（current/total），缓存已收到的 content，收齐后合并展示
+let pendingReportContent: any = null
+
 Page({
 
   /**
@@ -9,60 +56,18 @@ Page({
   data: {
     isMeasuring: false,
     progress: 0,
-    // 微体检数据
-    microCheckData: {
-      heartRate: 0,        // 心率
-      bloodOxygen: 0,      // 血氧
-      pressure: 0,         // 压力
-      emotion: 0,          // 情绪
-      fatigueLevel: 0,     // 疲劳度
-      bloodSugar: 0,       // 血糖
-      bodyTemperature: 0,  // 体温
-      highPressure: 0,     // 高压
-      lowPressure: 0,      // 低压
-      hrv: 0               // HRV
-    },
-    hasResult: false,      // 是否有测量结果
-    errorMsg: ''           // 错误信息
-  },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
+    liveHeartRate: 0,   // 测量中每秒心率（type 51）
+    hasResult: false,   // 是否已出报告
+    errorMsg: '',       // 失败/忙/低电提示
+    measuringTip: '',   // 测量中状态提示（佩戴未通过/导联脱落）
+    report: createEmptyReport()
   },
 
   /**
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    // 【排查日志】打印系统信息，区分平台
-    const systemInfo = wx.getSystemInfoSync();
-    console.log("[微体检] ========== 页面显示 ==========");
-    console.log("[微体检] 系统信息:", JSON.stringify({
-      platform: systemInfo.platform,
-      system: systemInfo.system,
-      brand: systemInfo.brand,
-      model: systemInfo.model,
-      SDKVersion: systemInfo.SDKVersion
-    }));
-
     this.notifyMonitorValueChange();
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-    // 页面隐藏时可以停止监听
   },
 
   /**
@@ -78,120 +83,178 @@ Page({
   // 监听订阅 notifyMonitorValueChange
   notifyMonitorValueChange() {
     let self = this;
-    console.log("[微体检] 开始注册蓝牙监听回调");
 
     veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function (e: any) {
-      console.log("[微体检] 蓝牙回调触发，原始数据:", JSON.stringify(e));
-      console.log("[微体检] e.type:", e?.type, "e.dataType:", e?.dataType);
-
-      // 检查数据是否有效
       if (!e || e.type === undefined) {
-        console.warn("[微体检] 数据无效: e不存在或type未定义");
         return;
       }
-      // type 53 为微体检测量数据类型
+      // type 53 微体检测量（进度/报告/各种状态）
       if (e.type == 53) {
-        console.log("[微体检] type=53，进入微体检处理");
+        console.log("[微体检] 回调:", e);
         self.handleMicroCheckCallback(e);
       }
-      // 其他类型数据忽略（由其他页面处理）
-    })
-
-    // ppg 的通道与常规数据通道不一样
-    veepooBle.veepooWeiXinSDKNotifyECGValueChange(function (e: any) {
-      if (!e || e.type === undefined) {
-        return;
+      // type 51 每秒心率，测量中实时显示
+      else if (e.type == 51 && self.data.isMeasuring && e.content) {
+        self.setData({ liveHeartRate: e.content.heartRate || 0 });
       }
-      if (e.type == 36) {
-        console.log("[微体检] 蓝牙回调触发，ppg原始数据:", JSON.stringify(e))
-      }
+      // type 54 ppg 原始数据，本页不绘制波形，忽略
     })
   },
 
-  // 处理微体检测量回调
+  // 处理微体检测量回调（type 53）
+  // dataType: 0进度 1成功报告(平铺) 2失败 3设备忙 4低电 5成功报告 6佩戴未通过 7导联脱落
   handleMicroCheckCallback(e: any) {
-    let self = this;
+    const dataType = e.dataType;
 
-    // 检查数据有效性
-    if (!e) {
-      console.warn("[微体检] 收到空数据");
+    // 0 进度 / 6 佩戴未通过 / 7 导联脱落：测量仍在进行
+    if (dataType === 0 || dataType === 6 || dataType === 7) {
+      this.setData({
+        isMeasuring: true,
+        progress: e.progress || 0,
+        measuringTip: STATE_TIPS[dataType] || ''
+      });
       return;
     }
 
-    // 【排查日志】打印完整回调数据
-    console.log("[微体检] 完整回调数据:", JSON.stringify(e));
-    console.log("[微体检] dataType:", e.dataType, "progress:", e.progress, "type:", e.type);
-
-    // control: 1 开启 2 关闭
-    // dataType: 0 进度包 1 测量成功报告数据 2 测量失败无结果数据 3 设备正忙 4 设备低电
-    const dataType = e.dataType;
-    const progress = e.progress || 0;
-
-    switch (dataType) {
-      case 0:
-        // 进度包
-        self.setData({
-          progress: progress
-        });
-        console.log("微体检测量进度:", progress);
-        break;
-
-      case 1:
-        // 测量成功报告数据
-        const content = e.content || {};
-        self.setData({
-          isMeasuring: false,
-          hasResult: true,
-          progress: 100,
-          microCheckData: {
-            heartRate: content.heartRate || 0,
-            bloodOxygen: content.bloodOxygen || 0,
-            pressure: content.pressure || 0,
-            emotion: content.emotion || 0,
-            fatigueLevel: content.fatigueLevel || 0,
-            bloodSugar: content.bloodSugar || 0,
-            bodyTemperature: content.bodyTemperature || 0,
-            highPressure: content.highPressure || 0,
-            lowPressure: content.lowPressure || 0,
-            hrv: content.hrv || 0
-          }
-        });
-        console.log("微体检测量完成:", content);
-        break;
-
-      case 2:
-        // 测量失败无结果数据
-        self.setData({
-          isMeasuring: false,
-          hasResult: false,
-          errorMsg: '测量失败，无结果数据'
-        });
-        console.log("微体检测量失败");
-        break;
-
-      case 3:
-        // 设备正忙
-        self.setData({
-          isMeasuring: false,
-          hasResult: false,
-          errorMsg: '设备正忙，请稍后再试'
-        });
-        console.log("设备正忙");
-        break;
-
-      case 4:
-        // 设备低电
-        self.setData({
-          isMeasuring: false,
-          hasResult: false,
-          errorMsg: '设备电量低，请充电后再试'
-        });
-        console.log("设备低电");
-        break;
-
-      default:
-        break;
+    // 2 失败 / 3 设备忙 / 4 低电：结束测量
+    if (dataType === 2 || dataType === 3 || dataType === 4) {
+      pendingReportContent = null;
+      this.setData({
+        isMeasuring: false,
+        hasResult: false,
+        progress: 0,
+        measuringTip: '',
+        errorMsg: STATE_TIPS[dataType] || ''
+      });
+      return;
     }
+
+    // 1 成功报告
+    if (dataType === 1) {
+      this.showReport(e.content || {});
+      return;
+    }
+
+    // 5 成功报告
+    if (dataType === 5) {
+      pendingReportContent = Object.assign({}, pendingReportContent, e.content || {});
+      const total = Number(e.total) || 1;
+      const current = Number(e.current) || 1;
+      if (current >= total) {
+        const content = pendingReportContent;
+        pendingReportContent = null;
+        this.showReport(content);
+      }
+    }
+  },
+
+  // 测量成功，归一化并展示报告
+  showReport(content: any) {
+    this.setData({
+      isMeasuring: false,
+      hasResult: true,
+      progress: 100,
+      errorMsg: '',
+      measuringTip: '',
+      liveHeartRate: 0,
+      report: this.buildReport(content)
+    });
+  },
+
+
+  buildReport(content: any) {
+    const c = content || {};
+
+    // 血压：05 光电优先、其次气泵；01 为平铺字段
+    const optical = c.opticalBloodPressure;
+    const pump = c.pumpBloodPressure;
+    const bp = optical || pump;
+    let bloodPressure;
+    if (bp) {
+      bloodPressure = bp.highPressure + '/' + bp.lowPressure;
+    } else if (c.highPressure !== undefined || c.lowPressure !== undefined) {
+      bloodPressure = c.highPressure + '/' + c.lowPressure;
+    }
+
+    // 体温：05 为 {rawTemperature, bodyTemperature}，01 为数值
+    let bodyTemperature;
+    if (c.bodyTemperature !== undefined) {
+      bodyTemperature = typeof c.bodyTemperature === 'object' ? c.bodyTemperature.bodyTemperature : c.bodyTemperature;
+    }
+
+    // 血糖：05 为 {displayType, value}，01 为数值(mmol/L)
+    let bloodSugar;
+    if (c.bloodSugar !== undefined) {
+      if (typeof c.bloodSugar === 'object') {
+        bloodSugar = c.bloodSugar.displayType === 'level' ? ('等级 ' + c.bloodSugar.value) : c.bloodSugar.value;
+      } else {
+        bloodSugar = c.bloodSugar;
+      }
+    }
+
+    // 情绪/疲劳度：描述 + 数值
+    const emotion = c.emotion !== undefined ? (this.getEmotionText(c.emotion) + '(' + c.emotion + ')') : undefined;
+    const fatigueLevel = c.fatigueLevel !== undefined ? (this.getFatigueText(c.fatigueLevel) + '(' + c.fatigueLevel + ')') : undefined;
+
+    // 个人基本信息（仅 05 报告有）
+    const basicInfoList: any[] = [];
+    if (c.basicInfo) {
+      basicInfoList.push({ label: '性别', value: c.basicInfo.gender === 'male' ? '男' : '女' });
+      basicInfoList.push({ label: '年龄(岁)', value: c.basicInfo.age });
+      basicInfoList.push({ label: '身高(cm)', value: c.basicInfo.height });
+      basicInfoList.push({ label: '体重(kg)', value: c.basicInfo.weight });
+    }
+
+    // 皮电（仅 05 报告有）
+    const skinList: any[] = [];
+    if (c.skinElectrical) {
+      const s = c.skinElectrical;
+      const riskText = ['低', '中', '高'];
+      skinList.push({ label: '情绪', value: this.getEmotionText(s.emotion) + '(' + s.emotion + ')' });
+      skinList.push({ label: '皮肤含水量(%)', value: s.skinMoisture });
+      skinList.push({ label: '抑郁症风险', value: riskText[s.depressionRisk] !== undefined ? riskText[s.depressionRisk] : s.depressionRisk });
+      skinList.push({ label: '交感神经活跃度', value: s.snsActivation });
+      skinList.push({ label: '皮质醇(ug/L)', value: s.cortisol });
+    }
+
+    // 血液成分（仅 05 报告有）
+    const bloodComponentList: any[] = [];
+    if (c.bloodComponent) {
+      const b = c.bloodComponent;
+      bloodComponentList.push({ label: '尿酸(μmol/L)', value: b.uricAcid });
+      bloodComponentList.push({ label: '总胆固醇(mmol/L)', value: b.cholesterol });
+      bloodComponentList.push({ label: '甘油三酯(mmol/L)', value: b.triglyceride });
+      bloodComponentList.push({ label: '高密度脂蛋白(mmol/L)', value: b.highDensityLipoprotein });
+      bloodComponentList.push({ label: '低密度脂蛋白(mmol/L)', value: b.lowDensityLipoprotein });
+    }
+
+    // 身体成分（仅 05 报告有，字段按设备支持情况返回）
+    const bodyCompositionList: any[] = [];
+    if (c.bodyComposition) {
+      for (let i = 0; i < BODY_COMPOSITION_FIELDS.length; i++) {
+        const f = BODY_COMPOSITION_FIELDS[i];
+        const v = c.bodyComposition[f.key];
+        if (v !== undefined) {
+          bodyCompositionList.push({ label: f.label, value: v });
+        }
+      }
+    }
+
+    return {
+      heartRate: c.heartRate,
+      bloodOxygen: c.bloodOxygen,
+      pressure: c.pressure,
+      hrv: c.hrv,
+      bloodPressure: bloodPressure,
+      bodyTemperature: bodyTemperature,
+      bloodSugar: bloodSugar,
+      emotion: emotion,
+      fatigueLevel: fatigueLevel,
+      basicInfoList: basicInfoList,
+      skinList: skinList,
+      bloodComponentList: bloodComponentList,
+      bodyCompositionList: bodyCompositionList
+    };
   },
 
   // 获取情绪描述
@@ -228,48 +291,30 @@ Page({
 
   // 开始微体检测量
   microCheckStart() {
-    let self = this;
-
-    // 【排查日志】打印设备信息
-    const bleInfo = wx.getStorageSync('bleInfo');
-    console.log("[微体检] 当前蓝牙设备信息:", JSON.stringify(bleInfo));
-    console.log("[微体检] 设备芯片类型 deviceChip:", bleInfo?.deviceChip);
+    pendingReportContent = null;
 
     // 重置数据
-    self.setData({
+    this.setData({
       isMeasuring: true,
       hasResult: false,
       progress: 0,
       errorMsg: '',
-      microCheckData: {
-        heartRate: 0,
-        bloodOxygen: 0,
-        pressure: 0,
-        emotion: 0,
-        fatigueLevel: 0,
-        bloodSugar: 0,
-        bodyTemperature: 0,
-        highPressure: 0,
-        lowPressure: 0,
-        hrv: 0
-      }
+      measuringTip: '',
+      liveHeartRate: 0,
+      report: createEmptyReport()
     });
 
     // 发送开始微体检测量指令
-    console.log("[微体检] 发送开始测量指令...");
     veepooFeature.veepooSendMicroCheckDataManager({ switch: 'start' });
-    console.log("[微体检] 开始测量指令已发送，等待蓝牙回调...");
   },
 
   // 停止微体检测量
   microCheckStop() {
-    let self = this;
-    self.setData({
+    this.setData({
       isMeasuring: false
     });
 
     // 发送停止微体检测量指令
     veepooFeature.veepooSendMicroCheckDataManager({ switch: 'stop' });
-    console.log("停止微体检测量");
   }
 })

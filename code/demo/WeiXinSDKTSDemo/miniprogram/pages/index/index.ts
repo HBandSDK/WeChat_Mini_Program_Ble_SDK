@@ -251,6 +251,10 @@ Component({
       {
         name:'世界时钟',
         path:'/pages/worldClock/index'
+      },
+      {
+        name:'皮肤电',
+        path:'/pages/skinElectrical/index'
       }
     ],
     valData: {

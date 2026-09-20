@@ -63,7 +63,8 @@
     "pages/pressureTest/index",
     "pages/YM28PROSendCommand/index",
     "pages/sportControl/index",
-    "pages/worldClock/index"
+    "pages/worldClock/index",
+    "pages/skinElectrical/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

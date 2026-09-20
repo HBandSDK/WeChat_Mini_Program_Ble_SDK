@@ -1,0 +1,50 @@
+<view class="page-wrap">
+  <view class="page-title">皮肤电活动测量</view>
+
+  <!-- 数据卡片 -->
+  <view class="data-card" wx:if="{{skinData && skinData.type === 62}}">
+    <view class="card-item">
+      <text class="label">运行模式</text>
+      <text class="value">{{skinData.model === 'start' ? '测量中' : '已停止'}}</text>
+    </view>
+    <view class="card-item">
+      <text class="label">设备状态</text>
+      <text class="value">{{skinData.state}}</text>
+    </view>
+    <view class="card-item">
+      <text class="label">测量进度</text>
+      <text class="value">{{skinData.Progress}}</text>
+    </view>
+    <view class="card-item">
+      <text class="label">情绪等级 [-10 ~ 10]</text>
+      <text class="value">{{skinData.content.emotionLevel || 0}}</text>
+    </view>
+    <view class="card-item">
+      <text class="label">皮肤含水量 [1 ~ 99]</text>
+      <text class="value">{{skinData.content.skinMoisture || 0}}</text>
+    </view>
+    <view class="card-item">
+      <text class="label">抑郁风险等级</text>
+      <text class="value">{{skinData.content.depressionRisk || 0}}</text>
+    </view>
+    <view class="card-item">
+      <text class="label">交感神经活跃度 [1 ~ 99]</text>
+      <text class="value">{{skinData.content.snsActivation || 0}}</text>
+    </view>
+    <view class="card-item">
+      <text class="label">皮质醇浓度</text>
+      <text class="value">{{skinData.content.cortisolValue || 0}}</text>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-tip" wx:else>
+    <text>暂无测量数据，请点击下方按钮开始测量</text>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="btn-group">
+    <button bindtap="startSkinElectricalActivityTest" class="btn-start">开始测量</button>
+    <button bindtap="closeSkinElectricalActivityTest" class="btn-stop">停止测量</button>
+  </view>
+</view>
