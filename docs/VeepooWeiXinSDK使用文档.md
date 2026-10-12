@@ -46,7 +46,7 @@ import { veepooBle, veepooFeature, veepooLogger, init } from '../../miniprogram_
 
 将构建产物 index.js 放入小程序项目，按上方方式 `import` 即可。
 
-> 小程序正式版若使用「网络表盘」功能，需在后台配置域名 `https://www.vphband.com`。
+> 小程序正式版若使用「网络表盘」或是 SDK中的付费功能，需在后台配置域名 `https://www.vphband.com`。
 
 ## 3. 核心概念：数据是怎么回来的（必读）
 
@@ -556,10 +556,12 @@ if (veepooLogger.isLevelEnabled(veepooLogger.LEVEL.DEBUG)) { /* DEBUG 已启用 
 
 ## 9.**功能接口模块 veepooFeature**
 
-所有功能接口的前提：**已连接 + 已通过密钥认证**。返回数据统一走第 3 节的全局监听，按 `type` 区分。
-文中每个接口标注的 `type` 即全局监听中的 `res.type`，
+所有功能接口的前提：**已连接 + 已通过密钥认证**。返回数据统一走第 3 节的全局监听，按 `type` 区分；
+文中每个接口标注的 `type` 即全局监听中的 `res.type`；
 
 ### 9.1 密钥认证(type=1)
+
+> 在发布正式版小程序之前，需要在微信公众平台->开发管理->开发设置->服务器域名中，提前将“ https://www.vphband.com:9001 ”进行配置，避免影响到后续付费功能的使用；
 
 **前提**
 
@@ -5265,7 +5267,7 @@ veepooFeature.veepooSendMicroCheckDataManager({
  }
 ```
 
-##### 字段说明
+**字段说明**
 
 **runState 测量状态**
 
