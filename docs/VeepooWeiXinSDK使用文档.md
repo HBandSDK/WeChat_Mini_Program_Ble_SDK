@@ -525,6 +525,87 @@ console.log("e=>",e)
 
 ------
 
+### 7.10 安卓配对接口
+
+> 适用范围：Android 平台 微信小程序端
+
+**前提**
+
+蓝牙设备已完成BLE连接
+
+**接口**
+
+```
+veepooAndroidPairWithPasswordVerifyManager
+```
+
+**传入参数**
+
+| 参数   | 类型   | 备注         |
+| ------ | ------ | ------------ |
+| device | Object | 蓝牙设备信息 |
+
+**使用示例**
+
+```js
+import {veepooFeature} from '../../miniprogram_dist/index'
+veepooFeature.veepooAndroidPairWithPasswordVerifyManager({
+  deviceId: 'AA:BB:CC:DD:EE:FF', // 关键传入deviceId
+}, function (res) {  
+  if (res.pairSuccess) {
+    // 配对成功
+    console.log('配对成功', res.pairResult)
+  } else {
+    // 配对失败/取消配对
+    console.log('配对失败', res.err)
+  }
+})
+```
+
+**补充说明**
+
+如果取消配对，由于安卓系统的机制，取消配对可能会造成BLE断开连接，需要用户自行监听连接状态，并进行重连操作；
+
+**回调**
+
+**res：**回调数据
+
+成功响应 
+
+```js
+{
+  pairSuccess: true,           // 配对是否成功
+  pairResult: {                // 配对详情
+    code: 0,                   // 0=成功
+    msg: '配对成功',
+    device: 'AA:BB:CC:DD:EE:FF',
+    // App端额外字段：
+    confirmed: true,           // bondState二次确认
+    bondState: 'BONDED'
+  },
+  err: null                    // 错误描述
+}
+```
+
+失败响应
+
+```js
+{
+  pairSuccess: false,
+  pairResult: null,
+  err: 'BT配对失败'             // 或 'BT配对异常: xxx'
+}
+```
+
+异常响应
+
+```js
+{ msg: '非安卓平台，不支持配对' }      // 非Android
+{ msg: '不支持的平台: xxx' }          // 不支持的平台
+```
+
+------
+
 
 
 ## 8. 日志控制模块 veepooLogger
@@ -584,15 +665,16 @@ veepooBlePasswordCheckManager
 ```js
 import {veepooFeature } from '../../miniprogram_dist/index'
  let data = {
-     isPair: true
+     isPair: true 
  }
 veepooFeature.veepooBlePasswordCheckManager(data);
 ```
 
 **补充说明**
 
-1.  秘钥认证时一般不用开启配对操作，如没有特殊说明，建议将**'isPair'**设置为**false**;
-2.  在进行ota固件升级之前，最好将**'isPair'**设置为**false**，否则固件升级操作会失败(在微信小程序的开发环境下使用ota,推荐使用**自动预览**进行)；
+1.  此处的 **isPair** 参数，只适用于在**iOS平台**下进行的配对操作；
+2.  秘钥认证时一般不用开启配对操作，如没有特殊说明，建议将**'isPair'**设置为**false**;
+3.  在进行ota固件升级之前，最好将**'isPair'**设置为**false**，否则固件升级操作会失败(在微信小程序的开发环境下使用ota,推荐使用**自动预览**进行)；
 
 **回调**
 
@@ -968,49 +1050,59 @@ veepooFeature.veepooSendReadDailyDataManager(data);
 Progress:100,// 读取进度 1-100%
 name:"读取日常数据",
 type:5,// type 等于5表示日常数据回调
-content:{
+content:[{
   // 当前包的位数
-  let currentPackageNum = 106,
+  currentPackageNum: 106,
   // 日期相关
-   let date = ''
+  date: '2026-07-09-02-30',
   //  计步相关 stepCount 步 数  amountOfExercise  运动量 distance 距离 calorie,卡路里 wear 佩戴
-  let step = ''
+  step: {
+      amountOfExercise: 0,// 运动量
+      calorie: 0,// 卡路里
+      distance: 0,// 距离
+      stepCount: 0, // 步数
+      wear: 0// 佩戴
+  },
   //  睡眠相关  6个睡眠状态
-  let sleepData = ''
-  //  脉率相关 5个脉率
-  let pulseReat = ''
-  //  心率相关  5个心率
-  let heartReat = ''
+  sleepData: [0, 0, 0, 0, 0, 255],
+  //  脉率相关 5个脉率(需要使用心率数据时，直接采用此处的数据)
+  pulseReat: [64, 0, 0, 0, 0],
   //  呼吸率相关  5个呼吸率
-  let respirationRate = ''
+  respirationRate: [255, 255, 255, 255, 255],//(付费功能) 未开启付费权限返回 []
   // 血压相关  高低压
-  let bloodPressure = ''
+  bloodPressure：{
+      bloodPressureHigh: 117, // 血压高值数据
+      bloodPressureLow: 84 // 血压低值数据
+  },
   // 5个HRV值
-  let HRVData = []
+  HRVData：[50, 0, 0, 0, 0],
   //  血氧相关  取前5个数，代表5个血氧值
-  let bloodOxygen = {
-         oxygens, //血氧
-         apneaResults, //呼吸暂停次数
-         isHypoxias, //呼吸暂停结果
-         hypoxiaTimes, //低氧时间
-         cardiacLoads, //心脏负荷
-         corrects, //血氧矫正
+  bloodOxygen: {
+         oxygens:[97, 0, 0, 0, 0], //血氧(以第一位的数据为准)
+         apneaResults:[00, 0, 0, 0, 0], //呼吸暂停次数(付费功能)
+         isHypoxias:[00, 0, 0, 0, 0], //呼吸暂停结果(付费功能)
+         hypoxiaTimes:[00, 0, 0, 0, 0], //低氧时间(付费功能)
+         cardiacLoads:[00, 0, 0, 0, 0], //心脏负荷(付费功能)
+         corrects:[00, 0, 0, 0, 0], //血氧矫正(付费功能)
   }
   //  睡眠活动相关   算法用到，应用层不做处理
-  let sleepAmountActivity = ''
+  sleepAmountActivity: [0, 0, 0, 0, 0],//(付费功能) 未开启付费权限返回 []
   //  睡眠状态量25个 算法用到，应用层不做处理
-  let sleepStatus = ''
+  sleepStatus: [0,0,0,0,....], 
   //  复位 可不做处理
-  let reset = ''
-  let g5Series = ''
+  reset： {
+      time: 32, 
+      reset: 0
+  },
+  g5Series: [0, 0, 0, 0, 0],
   //  血糖相关
-  let bloodGlucose = ''  // 注意：血糖功能类型等于 5 与 9  格式  {bloodGlucose：5.43,level:1}   level 风险等级  1 低 2 中 3 高
+  bloodGlucose: 4.09,  // 注意：血糖功能类型等于 5 与 9  格式  {bloodGlucose：5.43,level:1}   level 风险等级  1 低 2 中 3 高
    //  梅托相关
-  let meiTuo = ''
+  meiTuo: [11] //实际数据需要除以10=>1.1
   //  压力相关
-  let pressure = ''
+  pressure: [21]
   //  血液相关
-  let bloodLiquid = {
+  bloodLiquid: {
       cholesterol,//总胆固醇
       triacylglycerol,//甘油三酯
       highDensity,//高密度脂蛋白
@@ -1018,9 +1110,12 @@ content:{
       uricAcidVal,//尿酸值
   } 
   //  体温相关
-  let bodyTemperature = '' // 如果值为空，需要在特定的读取自动体温数据接口读取
+  bodyTemperature:{
+      bodyTemperature: 36.1, //体温
+      bodySurfaceTemperature: 36.0 //皮肤温度
+  } // 如果值为空，需要在特定的读取自动体温数据接口读取(这里如果没有返回数据，可以结合功能汇总、体温数据自动检测读取等相关接口进行操作)
 
-}
+}]
 }
 ```
 
@@ -4442,9 +4537,10 @@ veepooFeature.veepooSendECGmeasureStartDataManager();
       QTC,// QTC
 
    
+      // 以下的字段均需开启付费权限才可以使用，否则以数据均默认为 0
       diseaseRisk,//疾病风险     
       pressureIndex,//压力指数    
-      fatigueIndex,/疲劳指数    
+      fatigueIndex,//疲劳指数    
       myocarditisRisk,//心肌炎风险    
       coronaryHeartDisease,// 冠心病风险    
       angiosclerosisRisk,//血管硬化风险    
@@ -4686,7 +4782,8 @@ console.log('ecg文本data==>', data);
 
 **返回类型**
 
-```
+```js
+// 开启HRV付费权限
 [{
     type: 1,
     text: "信号太弱"
@@ -4750,6 +4847,14 @@ console.log('ecg文本data==>', data);
   {
     type: 16,
     text: "房性逸搏"
+  }
+]
+
+// 未开启HRV付费权限
+[
+  {
+    type: 0,
+    text: "" // 未开启付费
   }
 ]
 ```
@@ -5561,7 +5666,7 @@ let drawArr = veepooFeature.veepooGetLorentzScatterPlotData(HrvData);
 // 未开启HRV付费权限
 {
     type: 52,
-    message: "没有此功能"
+    message: "无访问权限"
 }
 ```
 
@@ -5623,7 +5728,7 @@ let starIndexs = veepooFeature.veepooGetLorentzScatterPlotStarIndex(HrvData);
 // 未开启HRV付费权限
 {
     type: 52,
-    message: "没有此功能"
+    message: "无访问权限"
 }
 ```
 
@@ -5668,7 +5773,7 @@ let similarity = veepooFeature.VeepooGetLorentzScatterPlotSimilarity(HrvData);
 // 未开启HRV付费权限
 {
     type: 52,
-    message: "没有此功能"
+    message: "无访问权限"
 }
 ```
 
@@ -5710,7 +5815,7 @@ let score = veepooFeature.VeepooGetHrvHeartHealthScore(HrvData);
 // 未开启HRV付费权限
 {
     type: 52,
-    message: "没有此功能"
+    message: "无访问权限"
 }
 ```
 
