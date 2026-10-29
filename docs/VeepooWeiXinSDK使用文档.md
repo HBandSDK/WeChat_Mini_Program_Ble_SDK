@@ -2903,6 +2903,8 @@ veepooFeature.veepooSendBloodComponentDataManager(value);
 
 **回调**
 
+测量成功回调：
+
 
 ```js
 { 
@@ -2917,6 +2919,16 @@ veepooFeature.veepooSendBloodComponentDataManager(value);
       highDensity,// 高密度脂蛋白
       lowDensity，// 低密度脂蛋白
   }
+}
+```
+
+关闭测量回调：
+
+```js
+{
+    name: "关闭血液单项测量",
+    type: 21,
+    deviceAck:'usable'
 }
 ```
 
@@ -2966,12 +2978,12 @@ veepooSendBloodComponentCheckDataManager
 import { veepooFeature } from '../../miniprogram_dist/index'
 let data = {
   deviceControl: 'read', // setup 设置 read 读取
-  switch: self.data.deviceSwitch,
-  uricAcidVal: self.data.value1,
-  cholesterol: self.data.value2,
-  triacylglycerol: self.data.value3,
-  highDensity: self.data.value4,
-  lowDensity: self.data.value5
+  switch: 'start',
+  uricAcidVal: '90',
+  cholesterol: '10',
+  triacylglycerol: '10',
+  highDensity: '10',
+  lowDensity: '10'
 }
 veepooFeature.veepooSendBloodComponentCheckDataManager(data);
 ```
@@ -5586,7 +5598,7 @@ veepooFeature.veepooSendSetupB3AutoTestFeatureDataManager({
 
 **前提**
 
-设备已连接，且支持压力测量
+设备已连接，且支持压力测量(**功能汇总**返回第三包中的**pressureFunctionType**字段：返回 0、1 表示无压力功能；返回 2、3 表示支持压力功能)
 
 **接口**
 
@@ -5613,6 +5625,10 @@ veepooFeature.veepooSendPressureTestManager(data)
 
 **回调**
 
+测量成功回调：
+
+**pressure**值域范围：**[1,99]**
+
 ```typescript
 {
       name: "压力测量",
@@ -5626,7 +5642,37 @@ veepooFeature.veepooSendPressureTestManager(data)
 }
 ```
 
+关闭测量回调：
 
+```js
+{
+    name: '压力测量',
+    type: 58,
+    ack: 'usable',
+    message: '关闭压力测量'
+}
+```
+
+当前设备不支持此项功能时的回调：
+
+```js
+{
+    name: '压力测量',
+    type: 58,
+    ack: 'usable',
+    message: '当前设备不支持此项功能'
+}
+```
+
+**deviceAck枚举：**
+
+-  usable：可用的;
+
+-  deviceLowVoltage： 设备低电;
+
+-  deviceBusy： 设备忙碌 pass;
+
+-  notPassTheWearing： 佩戴不通过;
 
 ### 9.35 HRV / 洛伦兹散点图(type=52)
 
