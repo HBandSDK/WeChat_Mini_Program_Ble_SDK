@@ -3810,7 +3810,7 @@ veepooFeature.veepooSendFemaleInstructionsDataManager(data)
 
 
 
-### 9.22 设备管理(type=90 / 34)
+### 9.22 设备管理(type=90 / 34 / 91)
 
 #### 9.22.1 恢复出厂设置(type=90)
 
@@ -3922,11 +3922,42 @@ veepooFeature.veepooSendLanguageSetupManager(data)
 }
 ```
 
-
-
 ------
 
+#### 9.23.4 设备关机(type=91)
 
+**前提**
+
+设备已连接且完成密钥认证
+
+**接口**
+
+```js
+veepooSendDevicePowerOffDataManager
+```
+
+**传入参数**
+
+无
+
+**使用示例**
+
+```js
+import { veepooFeature } from '../../miniprogram_dist/index' 
+veepooFeature.veepooSendDevicePowerOffDataManager()
+```
+
+**回调**
+
+```js
+{
+    name: "设备关机",
+    type: 91,
+    deviceAck: 'Success' // Success 关机成功 failure 关机失败
+}
+```
+
+------
 
 ### 9.24 肤色档位设置
 
@@ -6261,6 +6292,7 @@ veepooFeature.veepooSendDeleteWorldClockDataManager(data);
 |  60  | 运动控制                       | ` veepooSendSportControlDataManager`                     |
 |  61  | 世界时钟                       | ` veepooSendAddWorldClockDataManager` 等                 |
 |  90  | 恢复出厂设置                   | `veepooSendResettingTheDeviceDataManager`                |
+|  91  | 设备关机                       | ` veepooSendDevicePowerOffDataManager`                   |
 | 2000 | PTT 测量开关                   | 设备主动上报                                             |
 
 

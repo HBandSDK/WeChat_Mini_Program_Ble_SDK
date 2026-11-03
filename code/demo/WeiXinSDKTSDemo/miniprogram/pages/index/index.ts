@@ -185,6 +185,10 @@ Component({
         path: 'reset'
       },
       {
+        name: '设备关机',
+        path: 'devicePowerOff'
+      },
+      {
         name: 'android编码',
         path: '/pages/androidCode/index'
       },
@@ -547,6 +551,10 @@ Component({
         })
         return
       }
+      
+      if (path == "devicePowerOff") {
+        veepooFeature.veepooSendDevicePowerOffDataManager()
+      }
       wx.navigateTo({
         url: path,
       })
@@ -615,7 +623,7 @@ Component({
     bleDataParses(value: any) {
       let self = this;
       let device: any = this.data.device;
-      console.log("蓝牙监听返回= 这个是index页面=>", value)
+      console.log("这个是index页面=>", value)
       // 校验
       if (value.type == 1) {
         device.VPDeviceVersion = value.content.VPDeviceVersion;
