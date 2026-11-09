@@ -11,7 +11,8 @@ Page({
    * 页面的初始数据
    */
   data: {
-    device: {}
+    device: {},
+    packageCount:0
   },
 
   /**
@@ -57,11 +58,24 @@ Page({
     this.notifyMonitorValueChange();
   },
 
+  changePackage(e:any){
+    const delta =Number(e.currentTarget.dataset.delta)
+    this.setData({
+      packageCount:Math.max(0, Number(this.data.packageCount) + delta)
+    })
+  },
+
+  inputPackage(e: any) {
+    this.setData({
+      packageCount: e.detail.value
+    })
+  },
+
   readData(e: any) {
     let index = e.currentTarget.dataset.index
     let data = {
       day: index, // 0 今天  1 昨天 2 前天
-      package: 0
+      package: Number(this.data.packageCount) || 0 // 必须是数字
     }
     veepooFeature.veepooSendReadDailyDataManager(data);
   },

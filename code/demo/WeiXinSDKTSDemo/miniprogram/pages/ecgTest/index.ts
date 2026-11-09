@@ -50,7 +50,11 @@ Page({
   },
   // 无参数
   ECGmeasureStartDataManager() {
-    this.notifyMonitorValueChange();
+    // this.notifyMonitorValueChange();
+    totalArray=[];
+    this.setData({
+      list:[]
+    })
     veepooFeature.veepooSendECGmeasureStartDataManager();
   },
   ECGmeasureStopDataManager() {
@@ -71,8 +75,9 @@ Page({
 
         if (e.progress == 100) {
           console.log("totalArray=>", totalArray)
+          const ecgList = totalArray.slice();
           self.setData({
-            list: totalArray
+            list: ecgList
           })
           self.drawCurve();
         }
@@ -94,6 +99,9 @@ Page({
     let ctx = wx.createCanvasContext('myCanvas', this)
     let list = this.data.list;
     console.log("list==>", list)
+    if (list.length < 2) {
+      return;
+    }
     let centerY = this.data.centerY;
     let width = this.data.width;
     let xScale = width / (list.length - 1); // 计算每个数据点占据的宽度

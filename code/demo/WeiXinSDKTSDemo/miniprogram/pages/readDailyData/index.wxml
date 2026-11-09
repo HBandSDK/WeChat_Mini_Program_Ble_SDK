@@ -1,4 +1,12 @@
 <view class="box">
+  <view class="box-package">
+    <text class="package-label">读取包数</text>
+    <view class="package-stepper">
+      <view class="stepper-btn" catch:tap="changePackage" data-delta="-1">-</view>
+      <input class="stepper-input" type="number" value="{{packageCount}}" bindinput="inputPackage" />
+      <view class="stepper-btn" catch:tap="changePackage" data-delta="1">+</view>
+    </view>
+  </view>
   <view class="box-day">
     <view class="day-item" catch:tap="readData" data-index="0">今天</view>
     <view class="day-item" catch:tap="readData" data-index="1">昨天</view>
