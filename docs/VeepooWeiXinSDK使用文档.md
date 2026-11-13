@@ -3141,6 +3141,13 @@ veepooFeature.veepooSendBloodComponentDataManager(value);
 
 血液校准值需要在特定范围内
 
+**帧结构**（`8A 02`）
+
+- 下发：`8A 02 CON 是否开启 尿酸(2B) 总胆固醇(2B) 甘油三酯(2B) 高密度(2B) 低密度(2B)`，共 14 字节，SDK 自动补 `0x00` 至 20 字节（对应协议预留位）；
+- 应答：`8A 02 CON Ack 是否开启` + 5 组 2 字节校准值 + 预留；
+- `CON`：`0x01` 设置 / `0x02` 读取；`是否开启`：`0x00` 关闭 / `0x01` 开启；`Ack`：`0x00` 失败 / `0x01` 成功；
+- 5 个校准值均为 2 字节小端（低字节在前）。
+
 **前提**
 
 设备已连接
@@ -3153,15 +3160,17 @@ veepooSendBloodComponentCheckDataManager
 
 **传入参数**
 
-| 参数            | 类型   | 备注                   |
-| --------------- | ------ | ---------------------- |
-| deviceControl   | string | setup 设置 read 读取   |
-| switch          | string | start 开启 stop 关闭   |
-| uricAcidVal     | string | 尿酸 90-1000 u mol/L   |
-| cholesterol     | string | 总胆固醇 0.01 - 20     |
-| triacylglycerol | string | 甘油三脂 0.01 - 20     |
-| highDensity     | string | 高密度脂蛋白 0.01 - 20 |
-| lowDensity      | string | 低密度脂蛋白 0.01 - 20 |
+| 参数            | 类型   | 备注                                 |
+| --------------- | ------ | ------------------------------------ |
+| deviceControl   | string | setup 设置 read 读取                 |
+| switch          | string | start 开启 stop 关闭                 |
+| uricAcidVal     | string | 尿酸，单位 μmol/L，范围 90.0～1000.0 |
+| cholesterol     | string | 总胆固醇，单位 mmol/L，范围 0.01～100.00 |
+| triacylglycerol | string | 甘油三脂，单位 mmol/L，范围 0.01～100.00 |
+| highDensity     | string | 高密度脂蛋白，单位 mmol/L，范围 0.01～100.00 |
+| lowDensity      | string | 低密度脂蛋白，单位 mmol/L，范围 0.01～100.00 |
+
+> 下发时 SDK 自动放大：尿酸 ×10、其余四项 ×100；读取（`deviceControl: 'read'`）时这 4 个值不参与组包，可传 0。
 
 **使用示例**
 
@@ -3181,26 +3190,29 @@ veepooFeature.veepooSendBloodComponentCheckDataManager(data);
 
 **回调**
 
-| 参数          | 类型   | 备注                 |
-| ------------- | ------ | -------------------- |
-| name          | string | 描述                 |
-| type          | number | 类型描述 21          |
-| deviceAck     | string | 操作状态             |
-| deviceControl | string | 设备控制 setup  read |
-| content       | object | 内容                 |
+| 参数          | 类型   | 备注                                       |
+| ------------- | ------ | ------------------------------------------ |
+| name          | string | 固定为「血液成分校准」                     |
+| type          | number | 类型描述 21                                |
+| deviceAck     | string | 操作状态：`Success` 成功 / `failure` 失败  |
+| deviceControl | string | 设备控制：`setup` 设置 / `read` 读取       |
+| content       | object | 校准数据，仅成功时返回                     |
+| message       | string | 失败说明，仅失败时返回：`血液校准测量失败` |
 
 content内容
 
 ```js
  content: {
     switch,// 开关 start 开启 stop关闭
-    uricAcidVal,// 尿酸
-    cholesterol,// 总胆固醇
-    triacylglycerol,// 甘油三脂
-    highDensity,// 高密度脂蛋白
-    lowDensity,// 低密度脂蛋白
+    uricAcidVal,// 尿酸，单位 μmol/L
+    cholesterol,// 总胆固醇，单位 mmol/L
+    triacylglycerol,// 甘油三脂，单位 mmol/L
+    highDensity,// 高密度脂蛋白，单位 mmol/L
+    lowDensity,// 低密度脂蛋白，单位 mmol/L
   }
 ```
+
+> **设置与读取返回同一结构**：`deviceControl` 为 `setup` 或 `read` 时都会带回 5 个校准值；`deviceAck` 为 `failure`（或设备回 `CON=0x00` 表示不支持）时只返回 `message`，无 `content`。
 
 ------
 
