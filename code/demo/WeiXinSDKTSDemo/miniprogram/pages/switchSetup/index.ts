@@ -23,11 +23,36 @@ Page({
       checked: false,
       disabled: true,
     })),
+    hasUnsupported: false, // 是否存在设备不支持的开关
+    b3Supported: false, // 功能汇总第四包 b3AutoTestFeatureType 是否为 1
+    b3Known: false, // 是否已读取到功能汇总第四包
   },
 
   onShow() {
     this.notifyMonitorValueChange()
+    this.checkB3Support()
     veepooFeature.veepooSendReadDeviceUnitSettingDataManager()
+  },
+
+  // 开关显示“不支持”时，检查功能汇总第四包的 b3AutoTestFeatureType
+  // 0 不支持 B3 自动测量；1 支持，可改走 B3 自动测量接口设置
+  checkB3Support() {
+    const features4 = wx.getStorageSync('Features4')
+    if (!features4 || features4.length <= 12) {
+      this.setData({ b3Known: false })
+      return
+    }
+    const value = String(features4[12])
+    this.setData({
+      b3Known: true,
+      b3Supported: value === '01' || value === '1',
+    })
+  },
+
+  goB3AutoTest() {
+    wx.navigateTo({
+      url: '/pages/b3AutoTestFeature/b3AutoTestFeature'
+    })
   },
 
   onSwitchChange(e: any) {
@@ -47,15 +72,19 @@ Page({
         const content = e.content
         if (!content) return
 
-        const updateData: Record<string, boolean> = {}
+        const updateData: Record<string, any> = {}
+        const disabledList = self.data.switchList.map((item: any) => item.disabled)
         SWITCH_CONFIG.forEach((item, index) => {
           if (item.pkg !== e.package) return
           const value = content[item.responseKey]
           if (value !== undefined) {
             updateData[`switchList[${index}].checked`] = value === 'open'
             updateData[`switchList[${index}].disabled`] = value === 'noThisFeature'
+            disabledList[index] = value === 'noThisFeature'
           }
         })
+        // 任一开关显示“不支持”时，页面提示可尝试 B3 自动测量
+        updateData.hasUnsupported = disabledList.some((disabled: boolean) => disabled)
         self.setData(updateData)
       }
     })

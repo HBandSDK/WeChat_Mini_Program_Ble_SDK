@@ -64,7 +64,8 @@
     "pages/YM28PROSendCommand/index",
     "pages/sportControl/index",
     "pages/worldClock/index",
-    "pages/skinElectrical/index"
+    "pages/skinElectrical/index",
+    "pages/customData/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

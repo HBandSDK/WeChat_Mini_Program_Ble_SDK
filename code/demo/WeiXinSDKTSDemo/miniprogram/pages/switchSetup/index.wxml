@@ -1,5 +1,15 @@
 <view class="box">
   <view class="tip">开关禁用表示设备不支持对应开关</view>
+
+  <!-- 开关显示“不支持”时，先检查功能汇总第四包的 b3AutoTestFeatureType -->
+  <view class="tip" wx:if="{{hasUnsupported}}">
+    若开关显示“不支持”，可查看功能汇总第四包的 b3AutoTestFeatureType（0 不支持 / 1 支持）。
+    <block wx:if="{{b3Known}}">
+      {{b3Supported ? '当前设备支持 B3 自动测量，可前往 B3 页面设置。' : '当前设备不支持 B3 自动测量。'}}
+    </block>
+  </view>
+  <button class="btn" wx:if="{{hasUnsupported && (!b3Known || b3Supported)}}" bindtap="goB3AutoTest">前往 B3 自动测量</button>
+
   <view class="box-item" wx:for="{{switchList}}" wx:key="index">
     <view>{{item.label}}</view>
     <view>

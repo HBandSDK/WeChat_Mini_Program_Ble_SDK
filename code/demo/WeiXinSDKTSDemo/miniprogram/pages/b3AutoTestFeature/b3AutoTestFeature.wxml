@@ -1,21 +1,57 @@
 <view class="box">
-  <button class="btn" catch:tap="startRead">开始读取</button>
-  <button class="btn" catch:tap="startSetup">开始设置</button>
 
-  <picker bindchange="bindPickerChange" value="{{index}}" range="{{array}}">
-    <view class="picker">
-      当前选择类型：{{array[index]}}
-    </view>
-  </picker>
+  <!-- 示例一：开启科学睡眠（单独用例） -->
+  <view class="section-title">示例一：开启科学睡眠（脉率）</view>
+  <view class="tip">开启脉率即开启科学睡眠：检测间隔固定为 0，开始时间与结束时间相等，形成连续 24 小时。</view>
+  <view class="row">
+    <text class="label">科学睡眠</text>
+    <switch type="switch" checked="{{sleepChecked}}" bindchange="sleepChange" />
+  </view>
+  <button class="btn-single" catch:tap="sleepSetup">
+  <text class="text-style">开始设置</text>
+  </button>
 
-  <view>
+  <!-- 示例二：通用自动测量 -->
+  <view class="section-title">示例二：通用自动测量</view>
+  <view class="row">
+    <text class="label">功能类型</text>
+    <picker bindchange="bindPickerChange" value="{{index}}" range="{{typeNames}}">
+      <view class="value">{{typeNames[index]}}</view>
+    </picker>
+  </view>
 
-    <view style="margin-top: 50rpx;">
-      <view class="section__title">开关：</view>
-      <view class="body-view">
-        <switch type="switch" checked="{{switch2Checked}}" bindchange="switch2Change" />
-      </view>
-    </view>
+  <view class="row">
+    <text class="label">检测间隔（分钟）</text>
+    <picker bindchange="bindIntervalChange" value="{{intervalIndex}}" range="{{intervalList}}">
+      <view class="value">{{intervalList[intervalIndex]}}</view>
+    </picker>
+  </view>
 
+  <view class="row">
+    <text class="label">开始时间</text>
+    <picker mode="time" value="{{startTime}}" bindchange="bindStartTimeChange">
+      <view class="value">{{startTime}}</view>
+    </picker>
+  </view>
+
+  <view class="row">
+    <text class="label">结束时间</text>
+    <picker mode="time" value="{{stopTime}}" bindchange="bindEndTimeChange">
+      <view class="value">{{stopTime}}</view>
+    </picker>
+  </view>
+
+  <view class="row">
+    <text class="label">开关</text>
+    <switch type="switch" checked="{{switch2Checked}}" bindchange="switch2Change" />
+  </view>
+
+  <view class="btn-group">
+    <button class="btn" catch:tap="startRead">
+    <text class="text-style">开始读取</text>
+    </button>
+    <button class="btn" catch:tap="startSetup">
+    <text class="text-style">开始设置</text>
+    </button>
   </view>
 </view>

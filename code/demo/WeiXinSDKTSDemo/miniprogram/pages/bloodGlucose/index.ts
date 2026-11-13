@@ -137,7 +137,7 @@ Page({
       },
       beforeDinner: {
         hour: '21',
-        minute: '50',
+        minute: '30',
         bloodGlucoseValue: 8.2  
       },
       afterDinner: {

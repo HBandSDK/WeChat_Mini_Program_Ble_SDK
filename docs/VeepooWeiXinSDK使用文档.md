@@ -238,6 +238,9 @@ init({
 | `veepooWeiXinSDKGetConnectedBleDeviceManager`                | 获取已连接的蓝牙设备                                         |         否         |
 | `veepooWeiXinSDKloseBluetoothAdapterManager`                 | 断开设备连接                                                 |         否         |
 | `veepooWeiXinSDKHandoverServiceManager`                      | 切换回主服务（ECG/表盘用完后切回）；如进行自行蓝牙连接操作，连接成功后必须调用此接口 |         否         |
+| `veepooWeiXinSDKSendCustomDataFramesManager`                 | 客户定制指令下发（0x04 自定义协议），详见 7.11               |         是         |
+| `veepooWeiXinSDKSetCustomDataDfuMode`                        | 设置/取消自定义下发的 DFU（资源传输）状态，详见 7.11         |         否         |
+| `veepooWeiXinSDKGetPacketSizeManager`                        | 获取当前链路单包可写长度（`MTU - 3`），详见 7.12             |         否         |
 
 ### 7.2 扫描蓝牙
 
@@ -604,6 +607,184 @@ veepooFeature.veepooAndroidPairWithPasswordVerifyManager({
 { msg: '不支持的平台: xxx' }          // 不支持的平台
 ```
 
+### 7.11 自定义数据下发（0x04 自定义协议）
+
+**前提**
+
+1. 蓝牙设备已连接；
+2. 已完成密钥认证；
+3. 建议「手环功能汇总」已收到（SDK 需要其中第三包的`chipSeriesType`字段数据，据此判断芯片系列，决定是否允许超过 20 字节的单帧）。
+
+**接口**
+
+```js
+veepooWeiXinSDKSendCustomDataFramesManager
+```
+
+**传入参数**
+
+| 参数        | 类型                   | 必填 | 说明                                                         |
+| ----------- | ---------------------- | :--: | ------------------------------------------------------------ |
+| `dataArray` | `Array<Array<String>>` |  是  | 二维十六进制字符串数组，每个子数组是一帧完整指令：**`0x04` 包头 + 2 字节协议编号 + 自定义内容**，首字节必须为 `0x04`，且单帧长度不少于 3 字节 |
+| `callback`  | `Function`             |  否  | 写入结果回调；校验失败时为 `{ code, errMsg }`（英文）        |
+
+**使用示例**
+
+多帧下发：
+
+```js
+import { veepooBle} from '../../miniprogram_dist/index'
+
+// 每帧：04(包头) + 协议编号(2字节) + 自定义内容
+const frames = [
+  ['04', '01', '01', '01', '01', '1A', '0B', '0A'],
+  ['04', '01', '01', '01', '02', '06', '1E', '01']
+]
+
+veepooBle.veepooWeiXinSDKSendCustomDataFramesManager(frames, function (res) {
+  if (!res || !res.success) {
+    console.log('下发失败：', res && res.code, res && res.errMsg, '失败帧：', res && res.failIndex)
+    return
+  }
+  console.log('下发完成', res)
+})
+```
+
+单帧下发：
+
+```js
+import { veepooBle} from '../../miniprogram_dist/index'
+
+// 每帧：04(包头) + 协议编号(2字节) + 自定义内容
+const frames = [
+  ['04', '01', '01', '01', '01', '1A', '0B', '0A', ... ...],
+]
+
+veepooBle.veepooWeiXinSDKSendCustomDataFramesManager([frames], function (res) {
+  if (!res || !res.success) {
+    console.log('下发失败：', res && res.code, res && res.errMsg, '失败帧：', res && res.failIndex)
+    return
+  }
+  console.log('下发完成', res)
+})
+```
+
+**回调**
+
+统一返回以下结构，校验不通过时**不会产生任何蓝牙数据**：
+
+| 字段        | 说明                                                         |
+| ----------- | ------------------------------------------------------------ |
+| `success`   | 是否全部写入成功                                             |
+| `code`      | 结果码数值，见下表（与 iOS 一致）                            |
+| `codeName`  | 结果码名称，如 `TooLong`                                     |
+| `codeDesc`  | 结果码中文描述，如 `数据超长`，可直接用于界面提示            |
+| `errMsg`    | 具体拦截原因，含帧号，如 `第 2 帧首字节不是 0x04，该接口仅支持 0x04 自定义协议`；成功时为空字符串 |
+| `total`     | 本次帧数                                                     |
+| `failIndex` | 失败帧下标（从 0 开始），仅失败时返回                        |
+
+> 完整的拦截原因（均带帧号）：
+>
+> - `尚未连接`：`设备未连接，请先连接设备后再下发自定义指令`
+> - `DFU`：`设备正处于 DFU/资源传输模式，暂不允许下发自定义指令`
+> - `空列表`：`指令列表为空，请至少传入一帧数据`
+> - `格式错误`：`第 N 帧格式错误，请传入十六进制字节数组`
+> - `长度不足`：`第 N 帧长度不足 3 字节，至少需要 0x04 包头 + 2 字节协议编号`
+> - `包头错误`：`第 N 帧首字节不是 0x04，该接口仅支持 0x04 自定义协议`
+> - `超长`：`第 N 帧长度 X 字节，超过特定平台的单包上限字节，请拆分为多帧下发`
+> - `写入失败`：`第 N 帧写入失败：<系统错误信息>`
+
+| code | 值 | 说明                                                         |
+| ---- | -- | ------------------------------------------------------------ |
+| `Success`     | 0 | 整批分包全部写入成功                                     |
+| `InvalidData` | 1 | 数据无效：列表为空、包格式错误、长度不足 3 字节、首字节不是 `0x04`，或写入失败 |
+| `TooLong`     | 2 | 存在包超过单包最大长度（中科平台 20 字节）               |
+| `NotConnected`| 3 | 设备未连接                                               |
+| `InDFUMode`   | 4 | 设备处于 DFU/资源传输模式                                |
+
+**数据接收（设备=>App）**
+
+`0x04` 数据通过现有订阅监听接口回调，无需额外注册：
+
+```js
+import { veepooBle} from '../../miniprogram_dist/index'
+
+veepooBle.veepooWeiXinSDKNotifyMonitorValueChange(function(e) {
+  // 非 0x04 数据交给其他分支处理
+  if (!Array.isArray(e) || e[0] !== '04') return
+
+  const protocolNo = e[1] + e[2]   // 协议编号（2 字节），如 '01 01'
+  const content = e.slice(3)       // Con + 自定义内容
+  console.log('自定义数据：协议编号=' + protocolNo, e)
+})
+```
+
+回调值为十六进制字符串数组，**含 `0x04` 包头**，SDK 不解析内容：
+
+|   下标    | 含义                        |
+| :-------: | --------------------------- |
+|  `e[0]`   | 固定包头 `04`               |
+| `e[1,2]`  | 协议编号（2 字节）          |
+| `e[3]` 起 | 自定义内容（含 Con 等字段） |
+
+> **ECG / ADC 波形与自定义数据可用同一接口监听**：**沿用原来的 `veepooWeiXinSDKNotifyECGValueChange` 即可同时收到 ECG 波形、ADC 波形和 `0x04` 自定义数据**。回调中按类型区分：波形为对象（`e.name` / `e.type`），自定义数据为数组（先判 `Array.isArray(e) && e[0] === '04'`）。二者不可同时订阅。
+
+**补充说明**
+
+- 单帧可写长度可通过 **7.12 的 `veepooWeiXinSDKGetPacketSizeManager`** 获取（`MTU - 3`），据此决定自定义协议的分包大小；
+- **中科平台（芯片系列 3/4）固定按 20 字节处理，与 MTU 无关**：单帧总长度必须控制在 **20 字节以内**，超过即返回 `TooLong`；更长数据请按自定义协议自行分包后逐帧下发；
+- 多条指令时 SDK 逐帧写入（帧间隔 30ms），**任一帧失败立即中断**，并通过 `failIndex` 返回失败帧下标；全部写完才回调 `success: true`；
+- 不足 20 字节的帧会被补齐 `0x00` 到 20 字节发出，自定义协议请按长度字段解析，不要按包尾解析；
+- 设备上报的 `0x04` 数据由 SDK 原样回调（含包头），需在数据监听中按协议编号自行分发解析；
+- OTA 或表盘传输期间请先调用 `veepooWeiXinSDKSetCustomDataDfuMode(true)`，此时下发会直接返回 `InDFUMode`，结束后调用 `false` 恢复；
+- **SDK 无超时与重试机制**：回调只表示「写入完成」，SDK 不等待设备应答、不做超时判断与自动重试。建议业务侧自行加超时兜底，例如发起后 **10 秒内未收到对应协议的应答即按失败处理**；重试前请先确认设备是否已执行，避免重复下发。
+
+**平台差异与中科平台限制**
+
+| 项目         | 中科平台（芯片系列 3/4）                                     | 其他平台                                                     |
+| ------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 单帧上限     | **固定 20 字节（含 5 字节帧头，内容区最多 15 字节），与 MTU 无关** | 可超过 20 字节，具体上限用 7.12 接口查询（`MTU - 3`） |
+| 超过 20 字节 | 写入前直接返回 `TooLong`（code = 2），**整批指令都不会发出** | 满足连接、认证等前提后**一般可正常下发**；超出设备实际能力时不保证成功 |
+| 分包要求     | 必须由自定义协议自行拆分（如 `总包 / 当前包` 字段），固件按字段重组 | 建议同样按 20 字节组帧                                       |
+
+### 7.12 获取当前单包最大写入长度
+
+**接口**
+
+```js
+veepooWeiXinSDKGetPacketSizeManager
+```
+
+**说明**：内部调用前需已连接设备，返回当前 BLE 链路单包最大可写字节数 = **`MTU - 3`**（ATT 头）。用于业务侧自行决定自定义协议的分包大小，避免盲目按 20 字节分包。
+
+**使用示例**
+
+```js
+import { veepooBle } from '../../miniprogram_dist/index'
+
+veepooBle.veepooWeiXinSDKGetPacketSizeManager(function (res) {
+  if (!res.success) {
+    console.log('获取单包大小失败：', res.errMsg)
+    return
+  }
+  console.log('当前 MTU =', res.mtu, '单包最大可写 =', res.packetSize)
+})
+```
+
+**回调**
+
+| 字段         | 说明                                                    |
+| ------------ | ------------------------------------------------------- |
+| `success`    | 是否成功取到 MTU                                        |
+| `mtu`        | 返回的原始 MTU 值                                       |
+| `packetSize` | 单包最大可写字节数（`MTU - 3`），取不到 MTU 时回退为 20 |
+| `errMsg`     | 失败原因；成功时为空字符串                              |
+
+**注意**
+
+- 本接口返回的是 **BLE 链路层能力**，不代表设备协议允许的长度：`0x04` 自定义指令在中科平台（芯片系列 3/4）仍受 20 字节限制，见 7.11。
+- 建议在设备连接、密钥认证完成后再查询。
+
 ------
 
 
@@ -806,8 +987,9 @@ veepooFeature.veepooBlePasswordCheckManager(data);
 
 **第四包**
 
-| bloodComponentType         | 血液成分（0 无；1 血脂+尿酸；2 有）        |
+| 字段                       | 含义                                       |
 | -------------------------- | ------------------------------------------ |
+| bloodComponentType         | 血液成分（0 无；1 血脂+尿酸；2 有）        |
 | bodyCompositionType        | 身体成分（0 无；1 有）                     |
 | worldClockType             | 世界时钟                                   |
 | bodyTemperatureAlarmType   | 体温报警（0 无；1 有过高过低提醒）         |
@@ -818,6 +1000,7 @@ veepooFeature.veepooBlePasswordCheckManager(data);
 | alDialType                 | AI 表盘（0 无；1 非大陆；2 大陆）          |
 | distanceAndCalorieType     | 距离与卡路里目标                           |
 | videoDialType              | 视频表盘                                   |
+| b3AutoTestFeatureType      | b3自动测量功能（0 不支持；1 支持）         |
 | photoAlbumPhotosType       | 相册相片（0 不支持；1 支持）               |
 | 4GFeatureType              | 4G（0 不支持；1 支持）                     |
 | electronicBusinessCardType | 电子名片（与钱包/名片互斥）                |
@@ -1741,9 +1924,17 @@ veepooFeature.veepooSendUnitSettingDataManager();
 
 可以参考Demo中 /pages/switchSetup 的实现，如果读取到的开关状态为不支持，则表示对应设备不支持该开关控制，也有可能SDK暂未兼容
 
+**开关显示“不支持”时，先检查 b3自动测量功能**
+
+如果 /pages/switchSetup页面里某个开关读取结果为“不支持”，不要直接判定设备不支持该功能，先查看**功能汇总第四包**的 b3AutoTestFeatureType 字段（字段说明见 **9.1.1 功能汇总**）：
+
+判断为支持后，自动测量类开关（脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分）应使用 veepooSendSetupB3AutoTestFeatureDataManager 设置，不要继续使用本节的开关接口。
+
+其中**科学睡眠**没有独立开关，通过 B3 自动测量中的「脉率」项开启（且测量间隔需为 0、开始时间与结束时间需相等），具体见 **9.32.3 开启科学睡眠**。
+
 **前提**
 
-设备设备已连接且支持开关设置功能
+设备已连接且支持开关设置功能
 
 **接口**
 
@@ -5516,7 +5707,7 @@ veepooSendReadB3AutoTestFeatureDataManager
 
 **使用示例**
 
-```
+```js
 import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
 
 // 读取自动测量功能
@@ -5542,14 +5733,15 @@ veepooFeature.veepooSendReadB3AutoTestFeatureDataManager();
   			"p_support_time_slot": { // 支持测试的时间段  不可修改
  				"startTime": "0:0", // 表示全天可修改
  				"stopTime": "0:0"
- 				}, 
+ 			}, 
  			"p_meas_inv": 30, // 测量间隔 可修改  根据p_step_unit 大小  如30，那么间隔30
  			"p_cur_time_slot": {// 当前的测试时间段 可修改
  				"startTime": "0:0", 
  				"stopTime": "0:0"
- 				}
  			}
- 		]
+ 		},
+        ... ...
+ 	]
  }
 ```
 
@@ -5564,30 +5756,31 @@ veepooFeature.veepooSendReadB3AutoTestFeatureDataManager();
 **接口**
 
 ```
-veepooSendReadB3AutoTestFeatureDataManager
+veepooSendSetupB3AutoTestFeatureDataManager
 ```
 
 **传入参数**
 
+传入参数结构：
+
 ```javascript
-// 全部为number类型
 {
       "p_protocol_type": 0,// 不可修改
-      "p_fun_type_content": 2,// 功能类型 0~8数据对应 脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分  可修改
-      "p_fun_switch": 1,// 0 关闭 1 开启  可修改
+      "p_fun_type_content": 2,// 功能类型 0~8数据对应： 0 脉率、1 血压、2 血糖、3 压力、4 血氧、5 体温、6 洛伦兹散点图、7 HRV、8 血液成分  可修改
+      "p_fun_switch": 1,// 开关状态： 0 关闭 1 开启  可修改
       "p_step_unit": 30, // 支持最小的步进，分 
       "p_time_slot_modify": 1, // 是否支持时间段修改 0 不可修改 1 
       "p_time_interval_modify": 1, // 是否支持时间间隔修改  0 不可修改 1 支持修改
       "p_support_time_slot": { // 支持测试的时间段  不可修改
-        "startTime": "0:0",// 开始时间  
-        "stopTime": "0:0"// 结束时间  
+        "startTime": "00:00",// 开始时间  
+        "stopTime": "00:00"// 结束时间  
       },
-      "p_meas_inv": 60,// 测量间隔 可修改  根据p_step_unit 大小  如30，那么间隔30
+      "p_meas_inv": 60,// 测量间隔 可修改  根据p_step_unit 大小  如30，那么间隔30分钟
       "p_cur_time_slot": { // 当前的测试时间段 可修改
         "startTime": "01:00",// 开始时间
         "stopTime": "10:0"// 结束时间
       }
-    }
+}
 ```
 
 **使用示例**
@@ -5595,7 +5788,7 @@ veepooSendReadB3AutoTestFeatureDataManager
 ```javascript
 import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
 
-// 开始设置
+// 开始设置(这里以设置脉率为准)
 veepooFeature.veepooSendSetupB3AutoTestFeatureDataManager({
   "p_protocol_type": 0,// 不可修改
   "p_fun_type_content": 2,// 功能类型 0~8数据对应 脉率、血压、血糖、压力、血氧、体温、洛伦兹散点图、HRV、血液成分  可修改
@@ -5604,10 +5797,10 @@ veepooFeature.veepooSendSetupB3AutoTestFeatureDataManager({
   "p_time_slot_modify": 1, // 是否支持时间段修改 0 不可修改 1 
   "p_time_interval_modify": 1, // 是否支持时间间隔修改  0 不可修改 1 支持修改
   "p_support_time_slot": { // 支持测试的时间段  不可修改
-    "startTime": "0:0",// 开始时间  
-    "stopTime": "0:0"// 结束时间  
+    "startTime": "00:00",// 开始时间  
+    "stopTime": "00:00"// 结束时间  
   },
-  "p_meas_inv": 60,// 测量间隔 可修改  根据p_step_unit 大小  如30，那么间隔30
+  "p_meas_inv": 60,// 测量间隔 可修改  根据p_step_unit 大小  如30，那么间隔30分钟
   "p_cur_time_slot": { // 当前的测试时间段 可修改
     "startTime": "01:00",// 开始时间
     "stopTime": "10:0"// 结束时间
@@ -5624,6 +5817,71 @@ veepooFeature.veepooSendSetupB3AutoTestFeatureDataManager({
  	"control": 1, // 1 设置 2 读取
 }
 ```
+
+
+
+#### 9.32.3 开启科学睡眠
+
+**前提**
+
+设备已连接，且设备支持B3自动测量功能(功能类型第4包)
+
+**接口**
+
+```
+veepooSendSetupB3AutoTestFeatureDataManager
+```
+
+**说明**
+
+本设备**没有独立的科学睡眠开关**，B3 自动测量中的 脉率(心率) 项（**p_fun_type_content = 0**）开启后即代表科学睡眠开启，不需要再调用其它开关接口。
+
+**开启科学睡眠的 3 个关键点**
+
+| 关键点 | 字段 | 取值 | 说明 |
+| ------ | ---- | ---- | ---- |
+| 1. 开启脉率 | p_fun_type_content | 0 | 0 为脉率（心率），开启脉率即开启科学睡眠 |
+| 2. 测量间隔设为 0 | p_meas_inv | 0 | 与其它功能不同，科学睡眠的测量间隔必须传 0 |
+| 3. 开始时间与结束时间相等 | p_cur_time_slot | **startTime** 与 **stopTime**传**相同**的值，如 "00:00"/ "00:00" | 两者相等才表示连续 24 小时；若传成不同的业务时间段，科学睡眠会失效 |
+
+> 其余字段（`p_protocol_type`、`p_step_unit`、`p_time_slot_modify`、`p_time_interval_modify`、`p_support_time_slot`）可以使用“自动测量功能读取”返回的设备参数原样回填，不要修改。
+
+**使用示例**
+
+```javascript
+import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
+
+// 开启科学睡眠：开启 B3 的 脉率 项
+veepooFeature.veepooSendSetupB3AutoTestFeatureDataManager({
+  "p_protocol_type": 0,        // 不可修改，使用读取到的值
+  "p_fun_type_content": 0,     // 关键点1：0 = 脉率，开启脉率即开启科学睡眠
+  "p_fun_switch": 1,           // 功能开关：1 开启 / 0 关闭
+  "p_step_unit": 30,          
+  "p_time_slot_modify": 1,     
+  "p_time_interval_modify": 1, 
+  "p_support_time_slot": {     
+    "startTime": "00:00",
+    "stopTime": "00:00"
+  },
+  "p_meas_inv": 0,             // 关键点2：科学睡眠测量间隔必须为 0
+  "p_cur_time_slot": {         // 关键点3：开始时间与结束时间必须相等，形成连续 24 小时
+    "startTime": "00:00",
+    "stopTime": "00:00"
+  }
+})
+```
+
+**回调**
+
+```js
+{
+ 	"name": "自动测量功能", 
+ 	"type": 54, 
+ 	"control": 1, // 1 设置 2 读取
+}
+```
+
+> 设置完成后建议再调用一次“自动测量功能读取”，确认 **p_fun_type_content = 0** 的项 **p_fun_switch** 已变为目标值。
 
 ### 9.33 压力测量(type=58)
 
@@ -6233,6 +6491,10 @@ veepooFeature.veepooSendDeleteWorldClockDataManager(data);
     "CRC": 2060,
 }
 ```
+
+### 9.37 B3 开启科学睡眠
+
+
 
 ------
 
@@ -6884,6 +7146,7 @@ veepooWeiXinSDKUpdateDeviceDialServiceManager               // 切到表盘服�
 
 | 版本 | 日期       | 说明                                                         |
 | ---- | ---------- | ------------------------------------------------------------ |
+| v3   | 2026-11-13 | 新增 7.11 自定义数据下发（0x04 自定义协议，含 `code/codeName/codeDesc/errMsg/failIndex` 返回结构、DFU 开关、拦截原因）与 7.12 单包大小查询；7.1 接口总表补充上述接口；补充 B3 自动测量与科学睡眠示例、睡眠数据间隔说明 |
 | v2   | 2026-08-18 | 文档重构：新增数据接收模型、Quick Start、init、type 总表、错误枚举总表；修复接口名示例错误；定制项目移入附录；修复type值重复问题 |
 | v1   | —          | 初版                                                         |
 

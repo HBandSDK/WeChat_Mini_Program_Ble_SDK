@@ -259,6 +259,10 @@ Component({
       {
         name:'皮肤电',
         path:'/pages/skinElectrical/index'
+      },
+      {
+        name: '自定义指令',
+        path: '/pages/customData/index'
       }
     ],
     valData: {

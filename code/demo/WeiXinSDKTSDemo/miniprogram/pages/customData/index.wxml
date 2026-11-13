@@ -1,0 +1,57 @@
+<view class="page">
+  <view class="tip">
+    <text>每行一帧，支持空格 / 逗号 / 0x 分隔。</text>
+    <text>SDK 只校验帧头（0x04 开头、≥3 字节、长度限制），内容原样下发。</text>
+  </view>
+
+  <view class="card">
+    <view class="section-title">当前链路单包大小</view>
+    <view class="packet-info" wx:if="{{packetInfo}}">{{packetInfo}}</view>
+    <view class="empty" wx:else>尚未查询，点击下方按钮获取</view>
+    <button class="btn btn-block" bindtap="onQueryPacketSize">查询单包大小</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">指令内容</view>
+    <textarea class="input" value="{{input}}" bindinput="onInput" auto-height maxlength="-1"
+      placeholder="例如：04 01 00 02 01 01" />
+    <view class="btn-group">
+      <button class="btn" bindtap="onTemplate">读取示例</button>
+      <button class="btn" bindtap="onPreview">解析预览</button>
+      <button class="btn" bindtap="onClear">清空</button>
+    </view>
+    <button class="btn-primary" bindtap="onSend">下发</button>
+  </view>
+
+  <block wx:if="{{frames.length > 0}}">
+    <view class="section-title">解析结果（{{frames.length}} 帧）</view>
+    <view class="card">
+      <view class="frame-item" wx:for="{{frames}}" wx:key="index">
+        <view class="frame-head">
+          <text class="frame-index">#{{item.index}}</text>
+          <text class="frame-len">{{item.len}} 字节</text>
+          <text class="frame-flag {{item.isCustom ? 'ok' : 'bad'}}">{{item.isCustom ? '0x04' : '非 0x04'}}</text>
+        </view>
+        <text class="frame-text">{{item.text}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="section-title">最近接收</view>
+  <view class="card">
+    <text class="recv-text" wx:if="{{lastRecv}}">{{lastRecv}}</text>
+    <view class="empty" wx:else>暂无数据</view>
+  </view>
+
+  <view class="section-title">日志</view>
+  <view class="log-box">
+    <view class="log-item" wx:for="{{logs}}" wx:key="id">
+      <view class="log-head">
+        <text class="log-time">{{item.time}}</text>
+        <text class="log-tag {{item.kind}}">{{item.kindText}}</text>
+      </view>
+      <text class="log-text">{{item.text}}</text>
+    </view>
+    <view class="empty" wx:if="{{logs.length === 0}}">暂无日志</view>
+  </view>
+</view>
