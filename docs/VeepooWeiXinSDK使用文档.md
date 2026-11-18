@@ -14,16 +14,17 @@
 
 SDK 提供三个模块，均从 `miniprogram_dist/index` 导入(以给出的demo为例)：
 
-| 模块              | 作用                                                |
-| ----------------- | --------------------------------------------------- |
-| **veepooBle**     | 蓝牙连接层：扫描、连接、订阅监听、断开、连接状态等  |
-| **veepooFeature** | 功能层：读取数据、控制手环（心率/血压/睡眠/ECG 等） |
-| **veepooLogger**  | 日志层：控制 SDK 内部日志输出，便于调试             |
+| 模块                  | 作用                                                         |
+| --------------------- | ------------------------------------------------------------ |
+| **veepooBle**         | 蓝牙连接层：扫描、连接、订阅监听、断开、连接状态等           |
+| **veepooFeature**     | 功能层：读取数据、控制手环（心率/血压/睡眠/ECG 等）          |
+| **veepooLogger**      | 日志层：控制 SDK 内部日志输出，便于调试                      |
+| **veepooDataCollect** | 数据收集层：暂存日常/睡眠解析结果，导出 JSON 用于排障（见第 11 章） |
 
 此外顶层导出一个 **`init(options)`** 方法，用于 SDK 初始化（见第 6 节）。
 
 ```js
-import { veepooBle, veepooFeature, veepooLogger, init } from '../../miniprogram_dist/index'
+import { veepooBle, veepooFeature, veepooLogger, veepooDataCollect , init } from '../../miniprogram_dist/index'
 ```
 
 > **能力边界：** 本 SDK 负责蓝牙连接与协议解析。OTA 升级、表盘传输等基于杰理（Jieli）SDK 的能力，由独立的 `jieli_sdk` 模块提供，需另行引入（见对应章节）。
@@ -6512,7 +6513,7 @@ veepooFeature.veepooSendDeleteWorldClockDataManager(data);
 
 
 
-### 10. type 回调对照总表（权威）
+## 10. type 回调对照总表（权威）
 
 全局监听 `veepooWeiXinSDKNotifyMonitorValueChange` 中按 `res.type` 路由。下表为完整对照：
 
@@ -6569,15 +6570,165 @@ veepooFeature.veepooSendDeleteWorldClockDataManager(data);
 |  91  | 设备关机                       | ` veepooSendDevicePowerOffDataManager`                   |
 | 2000 | PTT 测量开关                   | 设备主动上报                                             |
 
+## 11. 数据收集与导出模块 veepooDataCollect
+
+`veepooDataCollect` 把**解析完成后的日常数据 / 精准睡眠**暂存在内存，供集成方导出 JSON 反馈给 SDK 方，用于排查“数据不准 / 睡眠不准”。与第 8 章的 `veepooLogger`（运行日志）相互独立。
+
+- 支持范围：仅日常数据与精准睡眠，其他功能暂不采集；
+- 能力边界：只在内存保存，不落盘、不写本地存储、不上传、不分享；
+- 默认关闭，需显式调用 `setEnabled(true)`；
+- `veepooDataCollect` 为 SDK 顶层独立导出，不在 `veepooBle` / `veepooFeature` 之下。
+
+### 11.1 使用场景
+
+用户反馈「日常数据 / 睡眠数据与设备显示或预期不符」，需要 SDK 方分析解析结果时使用：
+
+1. 集成方打开收集开关；
+2. 让用户正常读取日常数据 / 精准睡眠，复现问题；
+3. 集成方导出 JSON；
+4. 把 JSON 连同现象、截图、App 版本、机型系统、操作时间一起交给 SDK 方。
+
+> 仅用于排查，正式发布版本建议保持默认关闭。
+
+### 11.2 如何收集数据
+
+**开关与查询**
+
+```js
+import { veepooDataCollect } from '../../miniprogram_dist/index'
+
+veepooDataCollect.setEnabled(true)   // 开启采集（默认关闭）
+veepooDataCollect.isEnabled()        // 当前状态
+veepooDataCollect.getCount()         // 已收集的读取次数
+veepooDataCollect.clear()            // 清空记录（关闭开关不会自动清空）
+```
+
+**采集时机**（只记「读取完成」，不逐包记录）
+
+| 数据类型 | 写入时机                         |
+| -------- | -------------------------------- |
+| 日常数据 | 本次读取收到终包、汇总解析完成时 |
+| 精准睡眠 | 整次读取拆包并全部解析完成时     |
+
+中途断开或没有结束包的那次读取不记录；内存最多保留最近 100 次读取。
+
+**页面接入示例**
+
+入口建议放操作页：开关全局生效，导出与清空集中处理，不必在日常 / 睡眠页各做一份。
+
+WXML:
+
+```html
+<view class="collect-box">
+    <view class="collect-title">数据收集（反馈给 SDK 开发）</view>
+    <view class="collect-row">
+      <text class="collect-label">开启收集</text>
+      <switch checked="{{dataCollectEnabled}}" color="#00b0fb" bindchange="toggleDataCollect" />
+    </view>
+    <view class="collect-row">
+      <text class="collect-label">已收集 {{collectedCount}} 次读取</text>
+    </view>
+    <view class="collect-btns">
+      <view class="collect-btn" catch:tap="exportCollectedData">获取JSON</view>
+      <view class="collect-btn collect-btn-clear" catch:tap="clearCollectedData">清空数据</view>
+    </view>
+  </view>
+```
+
+JS:
+
+```js
+export default {
+  data() {
+    return { dataCollectEnabled: false, collectedCount: 0 }
+  },
+  onShow() {
+    this.dataCollectEnabled = veepooDataCollect.isEnabled()
+    this.collectedCount = veepooDataCollect.getCount()
+  },
+  methods: {
+    toggleDataCollect(e) {
+      veepooDataCollect.setEnabled(e.detail.value)
+      this.dataCollectEnabled = e.detail.value
+      this.collectedCount = veepooDataCollect.getCount()
+    },
+    exportCollectedData() {
+      veepooDataCollect.exportData((err, json) => {
+        if (err || !json) return
+        console.log('收集数据 JSON=>', json)   // 交付方式由集成方决定
+      })
+    },
+    clearCollectedData() {
+      veepooDataCollect.clear()
+      this.collectedCount = 0
+    }
+  }
+}
+```
+
+### 11.3 如何提供数据
+
+**导出接口**
+
+| 方法                           | 说明                                                         |
+| ------------------------------ | ------------------------------------------------------------ |
+| `exportData(callback, pretty)` | `callback(err, jsonString)`，**同步回调**；默认美化输出，传 `false` 为紧凑单行 |
+| `exportJson(pretty)`           | 直接返回 JSON 字符串；序列化异常时返回 `'{}'`                |
+
+每次导出都是内存中的全部记录，不缓存、不增量、不自动清空。
+
+**导出结构**
+
+```json
+{
+  "exportTime": "2026-11-04 20:01:00.021",
+  "device": { "mac": "AA:BB:CC:DD:EE:FF", "version": "3.0.4-5902" },
+  "total": 2,
+  "records": [
+    {
+      "seq": 1, "time": "...", "type": "daily", "packageIndex": 0,
+      "data": { "name": "读取日常数据", "type": 5, "Progress": 100, "content": [ ... ] }
+    },
+    {
+      "seq": 2, "time": "...", "type": "sleep", "readDay": "今天",
+      "data": { "name": "精准睡眠数据", "type": 4, "content": [ ... ] }
+    }
+  ]
+}
+```
+
+| 字段                                                   | 说明                                                         |
+| ------------------------------------------------------ | ------------------------------------------------------------ |
+| `device.mac` / `device.version`                        | 导出时刻的当前设备（A1 密码核准后才有值）；换过设备请先 `clear()` |
+| `type`                                                 | `daily` 日常数据 / `sleep` 精准睡眠                          |
+| `packageIndex` / `readDay`                             | 仅日常 / 仅睡眠，对应读取时传入的参数                        |
+| `content[].dailyRawData`、`sleepRawData`、`rawPackets` | 仅出现在导出数据中，业务回调不含                             |
+
+**交付方式**：SDK 不落盘、不上传、不分享，只提供 JSON 字符串。集成方可写入文件、发邮件或走自己的上传通道，建议**确认送达后再 `clear()`**：
+
+```js
+veepooDataCollect.exportData((err, json) => {
+  if (err || !json) return
+  wx.request({
+    url: '接收地址',
+    method: 'POST',
+    header: { 'content-type': 'application/json' },
+    data: json,
+    success() { veepooDataCollect.clear() },
+    fail() { uni.showToast({ title: '上传失败，可重试', icon: 'none' }) }
+  })
+})
+```
+
+> 反馈时建议一并提供：具体现象（哪个指标、显示值 vs 期望值）、截图、App 版本、手机机型与系统版本、操作时间点。开启采集不影响业务回调，只是把解析结果追加到内存。
+
+## 附录A：定制项目接口
+
+### A.1 JH58定制项目动态血压相关接口(type=55)
 
 
-### 附录A：定制项目接口
 
-#### A.1 JH58定制项目动态血压相关接口(type=55)
-
-
-
-##### A.1.1 读取测量模式开关状态(type=55)
+#### A.1.1 读取测量模式开关状态(type=55)
 
 **前提**
 
@@ -6617,7 +6768,7 @@ veepooFeature.veepooReadTestModeSwitchStateDataManager();
 
 
 
-##### A.1.2 设置测量模式开关状态(type=55)
+#### A.1.2 设置测量模式开关状态(type=55)
 
 **前提**
 
@@ -6661,7 +6812,7 @@ veepooFeature.veepooSetupTestModeOneSwitchStateDataManager(data);
 
 
 
-##### A.1.3 读取PPG原始数据(type=55)
+#### A.1.3 读取PPG原始数据(type=55)
 
 **前提**
 
@@ -6794,7 +6945,7 @@ veepooFeature.veepooJH58RealTimeMeasureManager(data);
 
 
 
-#### A.2 ZT163常灭屏功能(type=56)
+### A.2 ZT163常灭屏功能(type=56)
 
 **前提**
 
@@ -6838,9 +6989,9 @@ veepooFeature.veepooSetupZT163ScreenKillFunctionManager(data);
 
 
 
-#### A.3 4G设备(type=57)
+### A.3 4G设备(type=57)
 
-##### A.3.1 读取4G设备Service信息(type=57)
+#### A.3.1 读取4G设备Service信息(type=57)
 
 **前提**
 
@@ -6889,7 +7040,7 @@ veepooFeature.veepooRead4GServiceDataManager();
 
 
 
-##### A.3.2 设置4G设备Service信息(type=57)
+#### A.3.2 设置4G设备Service信息(type=57)
 
 **前提**
 
@@ -6950,9 +7101,9 @@ veepooFeature.veepooSetup4GServiceInfoManager({
 
 
 
-#### A.4 YM28PRO项目相关接口(type=59)
+### A.4 YM28PRO项目相关接口(type=59)
 
-##### A.4.1 读取设备当前数据情况(type=59)
+#### A.4.1 读取设备当前数据情况(type=59)
 
 **前提**
 
@@ -7005,7 +7156,7 @@ veepooFeature.veepooSetupSendYM28PROCommandManager(data);
 
 
 
-##### A.4.2 下发数据(type=59)
+#### A.4.2 下发数据(type=59)
 
 **前提**
 
@@ -7065,7 +7216,7 @@ veepooFeature.veepooSetupSendYM28PROCommandManager(data);
 
 
 
-##### A.4.3 读取SN码(type=59)
+#### A.4.3 读取SN码(type=59)
 
 前提
 
@@ -7106,7 +7257,7 @@ veepooFeature.veepooSetupSendYM28PROCommandManager(data);
 
 ```
 
-### 附录B：接口命名与拼写注意事项
+## 附录B：接口命名与拼写注意事项
 
 SDK 中部分接口名存在**既定的不规整拼写**，导出名已固定，**请原样复制使用，勿自行"修正"**，否则会报 `undefined is not a function`：
 
@@ -7120,7 +7271,7 @@ SDK 中部分接口名存在**既定的不规整拼写**，导出名已固定，
 | `veepooReadAutoTemperatureMeasurementDataManager` | 注意带 `Manager` 后缀          |
 | `veepooSendSettingWeatherForecastInfoManager`     | 注意带 `Manager` 后缀          |
 
-#### 底层封装接口完整列表（一般无需直接调用）
+### 底层封装接口完整列表（一般无需直接调用）
 
 下列接口已被"一站式"接口封装集成，仅在自行组装蓝牙流程时使用：
 
@@ -7144,7 +7295,7 @@ veepooWeiXinSDKUpdateECGServiceManager                      // 切到 ECG 服务
 veepooWeiXinSDKUpdateDeviceDialServiceManager               // 切到表盘服务
 ```
 
-#### 状态与多订阅 API（调试/重连场景）
+### 状态与多订阅 API（调试/重连场景）
 
 | 接口                                                         | 作用                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -7154,7 +7305,7 @@ veepooWeiXinSDKUpdateDeviceDialServiceManager               // 切到表盘服�
 | `removeBleNotificationListener(listenerId)`                  | 移除监听器                                                   |
 | `addConnectionStateListener(cb)` / `removeConnectionStateListener(cb)` | 连接状态多订阅                                               |
 
-### 附录C：版本与更新记录
+## 附录C：版本与更新记录
 
 | 版本 | 日期       | 说明                                                         |
 | ---- | ---------- | ------------------------------------------------------------ |

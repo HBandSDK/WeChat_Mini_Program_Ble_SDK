@@ -1,11 +1,13 @@
-.box{
+.box {
   padding: 50rpx;
 }
-.box-day{
+
+.box-day {
   display: flex;
   justify-content: space-around;
 }
-.day-item{
+
+.day-item {
   width: 25%;
   background-color: #a8a8a8;
   height: 30px;
@@ -13,19 +15,65 @@
   text-align: center;
   color: white;
   border-radius: 15rpx;
-
 }
-.steep-date{
+
+.steep-date {
   margin-top: 20px;
-
 }
-.steep-item{
+
+.steep-item-top {
+  display: flex;
+  justify-content: space-between;
+  height: 40px;
+  line-height: 40px;
+}
+
+.steep-item {
   display: flex;
   justify-content: space-between;
   height: 40px;
   line-height: 40px;
   border-bottom: 1px solid #dadada;
 }
-.steep-line{
+
+.steep-line {
+  margin-top: 20rpx;
   line-height: 40px;
+}
+
+.sleep-canvas {
+  width: 100%;
+  height: 180rpx;
+  background: #f7f7f7;
+  border-radius: 16rpx;
+  margin-top: 10rpx;
+}
+
+.ruler-tip {
+  margin: 10rpx 0;
+  font-size: 26rpx;
+  color: #333;
+}
+
+/* 图例样式 */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #333;
+}
+
+.legend-item {
+  margin-right: 20rpx;
+  display: inline-flex;
+  align-items: center;
+}
+
+.legend-item .dot {
+  display: inline-block;
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 6rpx;
+  margin-right: 8rpx;
 }

@@ -22,6 +22,22 @@
     </view>
   </view>
 
+  <!-- 数据收集：把日常数据 / 精准睡眠的解析结果暂存在内存，供反馈给 SDK 开发者 -->
+  <view class="collect-box">
+    <view class="collect-title">数据收集（反馈给 SDK 开发）</view>
+    <view class="collect-row">
+      <text class="collect-label">开启收集</text>
+      <switch checked="{{dataCollectEnabled}}" color="#00b0fb" bindchange="toggleDataCollect" />
+    </view>
+    <view class="collect-row">
+      <text class="collect-label">已收集 {{collectedCount}} 次读取</text>
+    </view>
+    <view class="collect-btns">
+      <view class="collect-btn" catch:tap="exportCollectedData">获取JSON</view>
+      <view class="collect-btn collect-btn-clear" catch:tap="clearCollectedData">清空数据</view>
+    </view>
+  </view>
+
   <!-- 页面渲染 -->
   <view class="page-box">
     <view class="page-item" wx:for="{{listDate}}" wx:key="index" catch:tap="skipPages" data-path="{{item.path}}">{{item.name}}</view>

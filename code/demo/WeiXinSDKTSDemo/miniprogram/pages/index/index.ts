@@ -1,5 +1,5 @@
 
-import { veepooBle, veepooFeature } from '../../miniprogram_dist/index'
+import { veepooBle, veepooFeature, veepooDataCollect } from '../../miniprogram_dist/index'
 
 import { veepooJLAuthenticationManager, veepooJLDisconnectDevice } from "../../jieli_sdk/index"
 import { BleDataHandler } from '../../jieli_sdk/lib/ble-data-handler';
@@ -268,7 +268,10 @@ Component({
     valData: {
       heartRate: 'start',
       bloodPressure: 'stop',
-    }
+    },
+    // 数据收集（把日常数据 / 精准睡眠的解析结果暂存在内存，供反馈给 SDK 开发）
+    dataCollectEnabled: false,
+    collectedCount: 0
   },
   methods: {
     getPairData() {
@@ -303,6 +306,10 @@ Component({
     onShow() {
 
       this.getPairData();
+      this.setData({
+        dataCollectEnabled:veepooDataCollect.isEnabled()
+      })
+      this.refreshCollectedCount();
       console.log('onshow生命周期')
       let msg=wx.getStorageSync('bleInfo')
       console.log('bleInfo==>',msg)
@@ -709,6 +716,81 @@ Component({
       veepooFeature.veepooBlePasswordCheckManager({ isPair: false })
       veepooFeature.veepooSendDisconnectBluetoothDataManager()
     },
+
+        // ============ 数据收集（日常数据 / 精准睡眠） ============
+
+    // 开关：决定是否把解析完毕的数据写入内存
+    toggleDataCollect(e: any) {
+      let enabled = e.detail.value;
+      veepooDataCollect.setEnabled(enabled);
+      this.setData({
+        dataCollectEnabled: enabled
+      })
+      this.refreshCollectedCount();
+      wx.showToast({
+        title: enabled ? '已开启收集' : '已关闭收集',
+        icon: 'none'
+      })
+    },
+
+    // 刷新已收集的读取次数
+    refreshCollectedCount() {
+      this.setData({
+        collectedCount: veepooDataCollect.getCount()
+      })
+    },
+
+    // 导出收集到的 JSON 数据
+    // 这里只是示例：拿到 json 后怎么处理（存文件 / 发送 / 上传）由集成方自行决定
+    exportCollectedData() {
+      if (veepooDataCollect.getCount() === 0) {
+        wx.showToast({
+          title: '暂无可导出的数据',
+          icon: 'none'
+        })
+        return
+      }
+      veepooDataCollect.exportData(function (err: any, json: string) {
+        if (err || !json) {
+          wx.showModal({
+            title: '获取失败',
+            content: (err && (err.errMsg || err.message)) || '未知错误',
+            showCancel: false
+          })
+          return
+        }
+        console.log('收集数据 JSON=>', json);
+        // 小程序端控制台不方便取数据，这里直接复制到剪贴板，方便反馈给 SDK 开发
+        wx.setClipboardData({
+          data: json,
+          success: function () {
+            wx.showModal({
+              title: '已获取数据',
+              content: '数据长度：' + json.length + ' 字符，已复制到剪贴板',
+              showCancel: false
+            })
+          },
+          fail: function () {
+            wx.showModal({
+              title: '已获取数据',
+              content: '数据长度：' + json.length + ' 字符，复制失败，请查看控制台',
+              showCancel: false
+            })
+          }
+        })
+      })
+    },
+
+    // 清空内存中的收集数据
+    clearCollectedData() {
+      veepooDataCollect.clear();
+      this.refreshCollectedCount();
+      wx.showToast({
+        title: '已清空',
+        icon: 'none'
+      })
+    },
+
     startDiscovery() {
       return new Promise((resolve, reject) => {
         wx.startBluetoothDevicesDiscovery({

@@ -1,37 +1,90 @@
 <view class="box">
   <view class="box-day">
-    <view class="day-item" catch:tap="ReadPreciseSleepManager" data-index="0">今天</view>
-    <view class="day-item" catch:tap="ReadPreciseSleepManager" data-index="1">昨天</view>
-    <view class="day-item" catch:tap="ReadPreciseSleepManager" data-index="2">前天</view>
+    <view class="day-item" bind:tap="ReadPreciseSleepManager" data-day="0">今天</view>
+    <view class="day-item" bind:tap="ReadPreciseSleepManager" data-day="1">昨天</view>
+    <view class="day-item" bind:tap="ReadPreciseSleepManager" data-day="2">前天</view>
   </view>
-  <view class="steep-date">
 
-    <view class="title">读取进度:{{device.readPercent}}</view>
+  <view class="steep-date">
+    <view class="steep-item-top">
+      <view class="item-left">
+        读取进度: {{ device.readPercent || device.Progress || 0 }}%
+      </view>
+      <view class="item-left">{{ device.readDay || '--' }}</view>
+    </view>
+
     <text>只显示第一段数据，剩余数据查看日志</text>
+
     <view class="steep-item">
       <view class="item-left">入睡时间</view>
-      <view class="item-left">{{device.content[0].fallAsleepTime}}</view>
+      <view class="item-left">{{ device.content[0].fallAsleepTime || '--' }}</view>
     </view>
+
     <view class="steep-item">
       <view class="item-left">起床时间</view>
-      <view class="item-left">{{device.content[0].exitSleepTime}}</view>
+      <view class="item-left">{{ device.content[0].exitSleepTime || '--' }}</view>
     </view>
+
     <view class="steep-item">
       <view class="item-left">深睡时间</view>
-      <view class="item-left">{{device.content[0].deepSleepTime}}</view>
+      <view class="item-left">{{ device.content[0].deepSleepTime || 0 }}分钟</view>
     </view>
+
     <view class="steep-item">
       <view class="item-left">浅睡时间</view>
-      <view class="item-left">{{device.content[0].lightSleepTime}}</view>
+      <view class="item-left">{{ device.content[0].lightSleepTime || 0 }}分钟</view>
     </view>
+
     <view class="steep-item">
       <view class="item-left">苏醒时间</view>
-      <view class="item-left">{{device.content[0].nightTotalTime}}</view>
+      <view class="item-left">{{ device.content[0].nightTotalTime || 0 }}分钟</view>
     </view>
+
+    <view class="steep-item">
+      <view class="item-left">快速眼动</view>
+      <view class="item-left">{{ device.content[0].otherSleepTime || 0 }}分钟</view>
+    </view>
+
+    <!-- 睡眠曲线 -->
     <view class="steep-line">
-    <view>睡眠曲线:</view>
-    <view>{{device.content.sleepCurve}}</view>
+      <view>睡眠曲线：</view>
+
+      <canvas
+        canvas-id="sleepCurveCanvas"
+        id="sleepCurveCanvas"
+        class="sleep-canvas"
+        bind:touchstart="onCanvasTouchStart"
+        bind:touchmove="onCanvasTouchMove"
+        bind:touchend="onCanvasTouchEnd"
+      ></canvas>
+
+      <!-- 提示文本：选中段信息 -->
+      <view wx:if="{{ showRuler }}" class="ruler-tip">
+        选中片段：{{ rulerTipText }}
+      </view>
+
+      <!-- 图例 -->
+      <view class="legend">
+        <view class="legend-item">
+          <view class="dot" style="background:#FFB74D;"></view>
+          <text>苏醒</text>
+        </view>
+
+        <view class="legend-item">
+          <view class="dot" style="background:#42A5F5;"></view>
+          <text>快速眼动</text>
+        </view>
+
+        <view class="legend-item">
+          <view class="dot" style="background:#7C68ED;"></view>
+          <text>浅睡</text>
+        </view>
+
+        <view class="legend-item">
+          <view class="dot" style="background:#512DA8;"></view>
+          <text>深睡</text>
+        </view>
+      </view>
     </view>
   </view>
-
-</view> 
+</view>

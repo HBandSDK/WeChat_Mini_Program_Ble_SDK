@@ -84,7 +84,7 @@ veepooBle.veepooWeiXinSDKStartScanDeviceAndReceiveScanningDevice(res => {
 将 `libs/vp_sdk` 下的 `index.js`、`index.d.ts` 放入小程序项目（demo 中对应 `code/demo/WeiXinSDKTSDemo/miniprogram/miniprogram_dist/`），然后引入：
 
 ```js
-import { veepooBle, veepooFeature, veepooLogger } from './miniprogram_dist/index'
+import { veepooBle, veepooFeature, veepooLogger, veepooDataCollect } from './miniprogram_dist/index'
 ```
 
 > 引入路径按 SDK 文件在项目中的实际位置调整。
@@ -160,7 +160,7 @@ Page({
 | 运动         | 运动模式、运动数据、运动控制、世界时钟                                                               | 9.13、9.35、9.36      |
 | 表盘与 OTA   | 自定义/网络表盘、UI 风格、杰理 OTA 与表盘传输（仅杰理设备）                                          | 9.24、9.26            |
 | 定制项目     | JH58、ZT163、YM28PRO、4G 服务等                                                                       | 文档附录 A            |
-| 日志         | 控制 SDK 内部日志输出，便于调试                                                                      | 文档第 8 章           |
+| 日志         | 控制 SDK 内部日志输出，便于调试                                                                      | 文档第 8 章、11章       |
 
 各功能的调用方式、参数与返回结构见使用文档对应章节，demo 中也提供了主要功能的示例页面。
 
@@ -207,8 +207,8 @@ Page({
 
 | 项目                      | 版本         | 发布日期   |
 | ------------------------- | ------------ | ---------- |
-| WeiXin_SDK                | **V1.2.1** | 2026/11/13 |
-| VeepooWeiXinSDK 使用文档   | **V2.1.0**   | 2026/11/13 |
+| WeiXin_SDK                | **V1.3.0** | 2026/11/17 |
+| VeepooWeiXinSDK 使用文档   | **V2.2.0**   | 2026/11/17 |
 
 **WeiXin_SDK：**
 
@@ -237,6 +237,7 @@ Page({
 | V1.1.28 | 2026/11/9  | 孙晓武 | 1.修复已知问题                                               |
 | V1.2.0  | 2026/11/13 | 孙晓武 | 1.新增自定数据下发接口                                       |
 | V1.2.1  | 2026/11/13 | 孙晓武 | 1.血液成分校准读取异常问题修复                               |
+| V1.3.0  | 2026/11/17 | 孙晓武 | 1.新增蓝牙日志导出模块                                       |
 
 **VeepooWeiXinSDK使用文档：**
 
@@ -250,6 +251,7 @@ Page({
 | V2.0.5   | 2026/10/29 | 孙晓武 | 1. 血液成分测量和压力测量相关内容调整          |
 | V2.0.6   | 2026/11/3  | 孙晓武 | 1.章节顺序调整                                 |
 | V2.1.0   | 2026/11/13 | 孙晓武 | 1.自定义数据下发接口、获取单包上限接口内容补充 |
+| V2.2.0   | 2026/11/17 | 孙晓武 | 1.蓝牙日志收集与导出模块内容补充               |
 
 
 
